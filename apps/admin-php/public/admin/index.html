@@ -132,6 +132,78 @@
     </section>
 
     <section class="card">
+      <h2 style="margin:0 0 10px;font-size:18px;">Edition Contenu Programme</h2>
+      <div class="grid">
+        <div>
+          <label for="programme-id">Programme ID</label>
+          <input id="programme-id" type="number" value="1" min="1">
+        </div>
+        <div>
+          <label for="programme-city">Ville</label>
+          <input id="programme-city" type="text" placeholder="Tunis">
+        </div>
+        <div>
+          <label for="programme-headline">Headline</label>
+          <input id="programme-headline" type="text" placeholder="Une adresse moderne...">
+        </div>
+        <div>
+          <label for="programme-short-description">Description courte</label>
+          <input id="programme-short-description" type="text" placeholder="Texte court visible dans le hero">
+        </div>
+      </div>
+      <div style="margin-top:10px;">
+        <label for="programme-full-description">Description longue</label>
+        <textarea id="programme-full-description" rows="5" style="width:100%;box-sizing:border-box;border:1px solid var(--line);border-radius:8px;padding:10px;font-size:14px;"></textarea>
+      </div>
+      <div class="actions">
+        <button id="btn-load-programme" type="button" class="secondary">Load Programme</button>
+        <button id="btn-save-programme" type="button">Save Programme</button>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2 style="margin:0 0 10px;font-size:18px;">Edition Rubrique</h2>
+      <div class="grid">
+        <div>
+          <label for="rubrique-programme-id">Programme ID</label>
+          <input id="rubrique-programme-id" type="number" value="1" min="1">
+        </div>
+        <div>
+          <label for="rubrique-id">Rubrique ID</label>
+          <input id="rubrique-id" type="number" value="" min="1" placeholder="chargé automatiquement">
+        </div>
+        <div>
+          <label for="rubrique-title">Titre</label>
+          <input id="rubrique-title" type="text" placeholder="Environnement">
+        </div>
+        <div>
+          <label for="rubrique-slug">Slug</label>
+          <input id="rubrique-slug" type="text" placeholder="environnement">
+        </div>
+      </div>
+      <div style="margin-top:10px;">
+        <label for="rubrique-content-text">Contenu texte</label>
+        <textarea id="rubrique-content-text" rows="4" style="width:100%;box-sizing:border-box;border:1px solid var(--line);border-radius:8px;padding:10px;font-size:14px;"></textarea>
+      </div>
+      <div style="margin-top:10px;">
+        <label for="rubrique-content-html">Contenu HTML (optionnel)</label>
+        <textarea id="rubrique-content-html" rows="4" style="width:100%;box-sizing:border-box;border:1px solid var(--line);border-radius:8px;padding:10px;font-size:14px;"></textarea>
+      </div>
+      <div class="grid" style="margin-top:10px;">
+        <div>
+          <label><input id="rubrique-is-enabled" type="checkbox" checked style="width:auto;"> Rubrique active</label>
+        </div>
+        <div>
+          <label><input id="rubrique-is-menu-visible" type="checkbox" checked style="width:auto;"> Visible dans le menu</label>
+        </div>
+      </div>
+      <div class="actions">
+        <button id="btn-load-rubriques" type="button" class="secondary">Load Rubriques Programme</button>
+        <button id="btn-save-rubrique" type="button">Save Rubrique</button>
+      </div>
+    </section>
+
+    <section class="card">
       <pre id="output">Ready.</pre>
     </section>
   </div>
@@ -141,6 +213,19 @@
     const email = document.getElementById("email");
     const password = document.getElementById("password");
     const API_BASE = location.pathname.startsWith("/admin") ? "/admin" : "";
+    const programmeIdInput = document.getElementById("programme-id");
+    const programmeCityInput = document.getElementById("programme-city");
+    const programmeHeadlineInput = document.getElementById("programme-headline");
+    const programmeShortDescriptionInput = document.getElementById("programme-short-description");
+    const programmeFullDescriptionInput = document.getElementById("programme-full-description");
+    const rubriqueProgrammeIdInput = document.getElementById("rubrique-programme-id");
+    const rubriqueIdInput = document.getElementById("rubrique-id");
+    const rubriqueTitleInput = document.getElementById("rubrique-title");
+    const rubriqueSlugInput = document.getElementById("rubrique-slug");
+    const rubriqueContentTextInput = document.getElementById("rubrique-content-text");
+    const rubriqueContentHtmlInput = document.getElementById("rubrique-content-html");
+    const rubriqueEnabledInput = document.getElementById("rubrique-is-enabled");
+    const rubriqueMenuVisibleInput = document.getElementById("rubrique-is-menu-visible");
 
     function print(label, payload) {
       const text = typeof payload === "string" ? payload : JSON.stringify(payload, null, 2);
@@ -157,6 +242,67 @@
       let parsed = body;
       try { parsed = JSON.parse(body); } catch (_) {}
       print(`${options.method || "GET"} ${url} -> ${res.status}`, parsed);
+      return { status: res.status, body: parsed };
+    }
+
+    async function loadProgramme() {
+      const programmeId = Number(programmeIdInput.value || "1");
+      const { body } = await call(`${API_BASE}/programmes/${programmeId}`);
+      if (!body || body.ok !== true || !body.item) return;
+      const item = body.item;
+      programmeCityInput.value = item.city || "";
+      programmeHeadlineInput.value = item.headline || "";
+      programmeShortDescriptionInput.value = item.short_description || "";
+      programmeFullDescriptionInput.value = item.full_description || "";
+    }
+
+    async function saveProgramme() {
+      const programmeId = Number(programmeIdInput.value || "1");
+      await call(`${API_BASE}/programmes/${programmeId}`, {
+        method: "PUT",
+        body: JSON.stringify({
+          city: programmeCityInput.value,
+          headline: programmeHeadlineInput.value,
+          short_description: programmeShortDescriptionInput.value,
+          full_description: programmeFullDescriptionInput.value
+        })
+      });
+    }
+
+    async function loadRubriquesProgramme() {
+      const programmeId = Number(rubriqueProgrammeIdInput.value || "1");
+      const { body } = await call(`${API_BASE}/rubriques?programme_id=${programmeId}&limit=100`);
+      if (!body || body.ok !== true || !Array.isArray(body.items) || body.items.length === 0) return;
+      const first = body.items[0];
+      rubriqueIdInput.value = first.id || "";
+      const { body: detail } = await call(`${API_BASE}/rubriques/${first.id}`);
+      if (!detail || detail.ok !== true || !detail.item) return;
+      const item = detail.item;
+      rubriqueTitleInput.value = item.title || "";
+      rubriqueSlugInput.value = item.slug || "";
+      rubriqueContentTextInput.value = item.content_text || "";
+      rubriqueContentHtmlInput.value = item.content_html || "";
+      rubriqueEnabledInput.checked = Number(item.is_enabled || 0) === 1;
+      rubriqueMenuVisibleInput.checked = Number(item.is_menu_visible || 0) === 1;
+    }
+
+    async function saveRubrique() {
+      const rubriqueId = Number(rubriqueIdInput.value || "0");
+      if (!rubriqueId) {
+        print("SAVE RUBRIQUE", "Rubrique ID manquant. Charge d'abord une rubrique.");
+        return;
+      }
+      await call(`${API_BASE}/rubriques/${rubriqueId}`, {
+        method: "PUT",
+        body: JSON.stringify({
+          title: rubriqueTitleInput.value,
+          slug: rubriqueSlugInput.value,
+          content_text: rubriqueContentTextInput.value,
+          content_html: rubriqueContentHtmlInput.value,
+          is_enabled: rubriqueEnabledInput.checked ? 1 : 0,
+          is_menu_visible: rubriqueMenuVisibleInput.checked ? 1 : 0
+        })
+      });
     }
 
     document.getElementById("btn-login").onclick = () =>
@@ -181,6 +327,10 @@
         body: JSON.stringify({ target_label: "production", deployment_status: "success" })
       });
     document.getElementById("btn-logout").onclick = () => call(`${API_BASE}/auth/logout`, { method: "POST" });
+    document.getElementById("btn-load-programme").onclick = loadProgramme;
+    document.getElementById("btn-save-programme").onclick = saveProgramme;
+    document.getElementById("btn-load-rubriques").onclick = loadRubriquesProgramme;
+    document.getElementById("btn-save-rubrique").onclick = saveRubrique;
   </script>
 </body>
 </html>
