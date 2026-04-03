@@ -27,6 +27,7 @@ export async function buildPublication(publicationId, rootDir = resolve(process.
   const buildCode = `publication-${publicationId}-${timestamp}`;
   const targetDir = resolve(publishedDir, buildCode);
   const targetRootIndex = resolve(targetDir, 'index.html');
+  const targetRootHtaccess = resolve(targetDir, '.htaccess');
   const logFile = resolve(logsDir, `publication-${publicationId}.log`);
 
   const lines = [];
@@ -49,6 +50,7 @@ export async function buildPublication(publicationId, rootDir = resolve(process.
     await mkdir(targetDir, { recursive: true });
     const rootIndexHtml = renderRootIndexHtml(payload, programmeSlug);
     await writeFile(targetRootIndex, rootIndexHtml, 'utf8');
+    await writeFile(targetRootHtaccess, renderRootHtaccess(programmeSlug), 'utf8');
 
     lines.push(`[${new Date().toISOString()}] PAYLOAD source=admin-php publication_id=${publicationId}`);
     lines.push(`[${new Date().toISOString()}] OUTPUT ${minisiteOutputPath}`);
@@ -96,6 +98,7 @@ export async function buildPublication(publicationId, rootDir = resolve(process.
   </body>
 </html>`;
     await writeFile(targetRootIndex, fallbackRootIndex, 'utf8');
+    await writeFile(targetRootHtaccess, renderRootHtaccess(fallbackSlug), 'utf8');
 
     const fallbackMinisiteDir = resolve(targetDir, 'minisites', fallbackSlug);
     minisiteOutputPath = resolve(fallbackMinisiteDir, 'index.html');
@@ -254,19 +257,31 @@ function renderRootIndexHtml(payload, programmeSlug) {
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Abdou - Publications</title>
+    <title>${escapeHtml(programmeName)} | Abdou</title>
+    <meta http-equiv="refresh" content="0;url=/minisites/${escapeHtml(programmeSlug)}" />
     <style>
-      body { font-family: Arial, sans-serif; margin: 32px; color: #111; }
-      a { color: #0d4ed8; text-decoration: none; }
+      body { font-family: Arial, sans-serif; margin: 40px 24px; color: #111; }
+      h1 { margin-bottom: 8px; }
+      p { margin: 6px 0; }
+      a { color: #0d4ed8; text-decoration: none; font-weight: 600; }
       a:hover { text-decoration: underline; }
     </style>
   </head>
   <body>
-    <h1>Abdou</h1>
-    <p>Publication statique générée.</p>
-    <p><a href="/minisites/${escapeHtml(programmeSlug)}">${escapeHtml(programmeName)}</a></p>
+    <h1>${escapeHtml(programmeName)}</h1>
+    <p>Redirection vers le minisite public.</p>
+    <p><a href="/minisites/${escapeHtml(programmeSlug)}">Ouvrir le minisite</a></p>
+    <script>
+      window.location.replace('/minisites/${escapeHtml(programmeSlug)}');
+    </script>
   </body>
 </html>`;
+}
+
+function renderRootHtaccess(programmeSlug) {
+  return `RewriteEngine On
+RewriteRule ^$ /minisites/${programmeSlug}/ [R=302,L]
+`;
 }
 
 function renderProgrammeHtml(payload, programmeSlug) {

@@ -23,7 +23,7 @@ const steps = [
     command:
       `node deploy/ovh/ftp/verify-site.mjs ` +
       `--target=dist/preview ` +
-      `--expect=Abdou ` +
+      `--expect=Redirection vers le minisite public. ` +
       `--expect=/minisites/`
   },
   {
