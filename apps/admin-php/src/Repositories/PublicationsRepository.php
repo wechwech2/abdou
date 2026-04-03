@@ -343,6 +343,11 @@ SQL
             return null;
         }
 
-        return sprintf('https://%s/%s', $domain, $slug);
+        $slug = trim($slug);
+        if ($slug === '') {
+            return sprintf('https://%s', $domain);
+        }
+
+        return sprintf('https://%s/minisites/%s', $domain, $slug);
     }
 }

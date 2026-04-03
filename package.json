@@ -27,6 +27,8 @@
     "test:smoke": "node tests/smoke/run-all-smoke.mjs",
     "test:smoke:shared-types": "pnpm --filter @abdou/shared-types run build && pnpm --filter @abdou/admin-api exec node tests/shared-types-runtime-smoke.mjs",
     "test:smoke:publication": "node tests/smoke/publication-workflow-smoke.mjs",
+    "test:smoke:public-programme-route": "node tests/smoke/public-programme-route-smoke.mjs",
+    "test:smoke:public-v1-flow": "node tests/smoke/public-v1-publication-flow-smoke.mjs",
     "test:smoke:deploy-rollback": "node tests/smoke/deploy-rollback-smoke.mjs",
     "test:smoke:deploy-verify": "node tests/smoke/deploy-verify-smoke.mjs",
     "test:smoke:contracts": "pnpm --filter @abdou/admin-api run build && node tests/smoke/contracts-catalog-consistency-smoke.mjs",

@@ -89,7 +89,7 @@ export async function deployPublication(publicationId, rootDir = resolve(process
   const mode = args.mode ?? process.env.DEPLOY_MODE ?? 'local';
   const targetDir = resolve(
     rootDir,
-    args.targetDir ?? process.env.DEPLOY_TARGET_DIR ?? resolve('dist', 'preview', 'deploy-target')
+    args.targetDir ?? process.env.DEPLOY_TARGET_DIR ?? resolve('dist', 'preview')
   );
   const verifyUrl = args.verifyUrl ?? process.env.DEPLOY_VERIFY_URL ?? '';
   const verifyExpectRaw = args.verifyExpect ?? process.env.DEPLOY_VERIFY_EXPECT ?? '';

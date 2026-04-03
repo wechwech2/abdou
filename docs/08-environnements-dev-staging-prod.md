@@ -345,8 +345,9 @@ Pour éviter les ambiguïtés d’exploitation locale, utiliser la séquence sui
 
 - construire la preview : `pnpm run preview:build` ;
 - publier en local : `pnpm run preview:publish` ;
+- URL publique attendue : `/minisites/:programme-slug` ;
 - exécuter la validation HTTP cible : `pnpm run test:smoke:admin-php:http`.
-- pour valider la phase locale complete avant test client sur domaine: `pnpm run test:smoke:client-phase-local`.
+- pour valider la phase locale complete avant test client sur domaine: `pnpm run test:smoke:client-phase-local` (surcharge possible via `CLIENT_PREVIEW_URL` ou `CLIENT_PREVIEW_PROGRAMME_PATH`).
 
 `compat legacy` (ponctuel uniquement) :
 

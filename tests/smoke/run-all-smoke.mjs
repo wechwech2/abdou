@@ -21,6 +21,18 @@ const tasks = [
     timeoutMs: 60_000
   },
   {
+    name: 'public-programme-route',
+    command: process.execPath,
+    args: ['tests/smoke/public-programme-route-smoke.mjs'],
+    timeoutMs: 60_000
+  },
+  {
+    name: 'public-v1-publication-flow',
+    command: process.execPath,
+    args: ['tests/smoke/public-v1-publication-flow-smoke.mjs'],
+    timeoutMs: 120_000
+  },
+  {
     name: 'deploy-rollback-workflow',
     command: process.execPath,
     args: ['tests/smoke/deploy-rollback-smoke.mjs'],

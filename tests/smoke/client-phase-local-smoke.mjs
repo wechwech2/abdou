@@ -2,7 +2,9 @@
 
 import { spawnSync } from 'node:child_process';
 
-const PUBLIC_URL = process.env.CLIENT_PREVIEW_URL || 'https://abdou.wechwech.tn';
+const PROGRAMME_PATH = process.env.CLIENT_PREVIEW_PROGRAMME_PATH || '/minisites/residence-horizon';
+const PUBLIC_BASE_URL = process.env.CLIENT_PREVIEW_BASE_URL || 'https://abdou.wechwech.tn';
+const PUBLIC_URL = process.env.CLIENT_PREVIEW_URL || `${PUBLIC_BASE_URL}${PROGRAMME_PATH}`;
 
 const steps = [
   {
@@ -17,12 +19,22 @@ const steps = [
     command: process.platform === 'win32' ? 'pnpm run preview:publish' : 'pnpm run preview:publish'
   },
   {
-    name: 'verify-preview-files',
+    name: 'verify-preview-root-files',
     command:
       `node deploy/ovh/ftp/verify-site.mjs ` +
       `--target=dist/preview ` +
       `--expect=Abdou ` +
-      `--expect=abdou.wechwech.tn`
+      `--expect=/minisites/`
+  },
+  {
+    name: 'verify-preview-programme-files',
+    command:
+      `node deploy/ovh/ftp/verify-site.mjs ` +
+      `--target=dist/preview${PROGRAMME_PATH} ` +
+      `--expect=id=\"hero\" ` +
+      `--expect=id=\"lots\" ` +
+      `--expect=id=\"lot-search\" ` +
+      `--expect=Abdou`
   },
   {
     name: 'verify-public-url',

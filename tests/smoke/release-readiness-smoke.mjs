@@ -9,6 +9,7 @@ const scripts = [
   'test:smoke:admin-php:workflow-detail-contract',
   'test:smoke:admin-api:compat-off',
   'test:smoke:admin-api:db-down-matrix',
+  'test:smoke:public-v1-flow',
   'test:smoke:backoffice:contract-parsing',
   'test:smoke:backoffice:api-base',
   'test:smoke:backoffice:api-paths',

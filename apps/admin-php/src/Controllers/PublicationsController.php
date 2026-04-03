@@ -347,7 +347,8 @@ final class PublicationsController
 
         try {
             $repository = new PublicationsRepository(ConnectionFactory::create());
-            $publication = $repository->findById((int)$id);
+            $publicationId = (int)$id;
+            $publication = $repository->findById($publicationId);
             if ($publication === null) {
                 JsonResponse::send(404, [
                     'ok' => false,
@@ -356,56 +357,49 @@ final class PublicationsController
                 return;
             }
 
-            $buildCode = (string)$publication['build_code'];
-            $programmeName = (string)$publication['programme_name'];
-            $publishedUrl = (string)($publication['published_url'] ?? '');
-            $generatedAt = gmdate('c');
+            $buildRun = $this->runNodePublicationScript('build-publication.mjs', $publicationId);
+            if (!$buildRun['ok']) {
+                JsonResponse::send(500, [
+                    'ok' => false,
+                    'error' => 'publication_preview_build_failed',
+                    'stdout' => $buildRun['stdout'],
+                    'stderr' => $buildRun['stderr'],
+                ]);
+                return;
+            }
+            $repository->updateStatus($publicationId, self::STATUS_GENERATED);
 
-            $root = dirname(__DIR__, 4);
-            $previewDir = $root . '/dist/preview/publications/' . $buildCode;
-            if (!is_dir($previewDir)) {
-                mkdir($previewDir, 0775, true);
+            $deployRun = $this->runNodePublicationScript('deploy-publication.mjs', $publicationId, [
+                '--targetDir=dist/preview',
+                '--mode=local',
+            ]);
+            if (!$deployRun['ok']) {
+                JsonResponse::send(500, [
+                    'ok' => false,
+                    'error' => 'publication_preview_deploy_failed',
+                    'stdout' => $deployRun['stdout'],
+                    'stderr' => $deployRun['stderr'],
+                ]);
+                return;
             }
 
-            $html = <<<HTML
-<!doctype html>
-<html lang="fr">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Preview {$buildCode}</title>
-  <style>
-    body { margin: 0; font-family: "Segoe UI", Tahoma, sans-serif; background: #f4f7fb; color: #1f2a37; }
-    .wrap { max-width: 860px; margin: 36px auto; padding: 0 16px; }
-    .card { background: #fff; border: 1px solid #dbe4f0; border-radius: 12px; padding: 18px; }
-    h1 { margin: 0 0 10px; font-size: 28px; }
-    p { margin: 7px 0; }
-    code { background: #eef3fb; padding: 2px 6px; border-radius: 6px; }
-  </style>
-</head>
-<body>
-  <div class="wrap">
-    <div class="card">
-      <h1>{$programmeName}</h1>
-      <p>Publication: <code>{$buildCode}</code></p>
-      <p>Version: <code>{$publication['version_number']}</code></p>
-      <p>Status: <code>{$publication['status']}</code></p>
-      <p>Generated: <code>{$generatedAt}</code></p>
-      <p>Target URL: <code>{$publishedUrl}</code></p>
-    </div>
-  </div>
-</body>
-</html>
-HTML;
-
-            file_put_contents($previewDir . '/index.html', $html);
+            $buildParsed = $this->parseScriptOutput($buildRun['stdout'], 'build-publication');
+            $minisitePath = (string)($buildParsed['output'] ?? '');
+            $previewRoute = (string)($buildParsed['route'] ?? '');
+            if ($previewRoute === '') {
+                $previewRoute = $this->extractPreviewRouteFromOutput($minisitePath) ?? '';
+            }
+            $publicationAfter = $repository->findById($publicationId);
 
             JsonResponse::send(200, [
                 'ok' => true,
                 'preview' => [
-                    'build_code' => $buildCode,
-                    'path' => 'dist/preview/publications/' . $buildCode . '/index.html',
+                    'publication_id' => $publicationId,
+                    'build_output' => $minisitePath,
+                    'route' => $previewRoute !== '' ? $previewRoute : null,
+                    'url' => $previewRoute !== '' ? 'https://abdou.wechwech.tn' . $previewRoute : null,
                 ],
+                'publication' => $publicationAfter,
             ]);
         } catch (Throwable $e) {
             JsonResponse::send(500, [
@@ -706,7 +700,7 @@ HTML;
     /**
      * @return array{ok: bool, exit_code: int, stdout: string, stderr: string}
      */
-    private function runNodePublicationScript(string $scriptName, int $publicationId): array
+    private function runNodePublicationScript(string $scriptName, int $publicationId, array $extraArgs = []): array
     {
         $projectRoot = $this->projectRoot();
         $script = $projectRoot . '/deploy/scripts/' . $scriptName;
@@ -720,11 +714,13 @@ HTML;
         }
 
         $nodeBin = defined('ABDOU_NODE_BIN') ? (string)ABDOU_NODE_BIN : 'node';
+        $escapedExtraArgs = array_map(static fn (string $arg): string => escapeshellarg($arg), $extraArgs);
         $command = sprintf(
-            '%s %s --publicationId=%d',
+            '%s %s --publicationId=%d%s',
             escapeshellarg($nodeBin),
             escapeshellarg($script),
-            $publicationId
+            $publicationId,
+            $escapedExtraArgs !== [] ? ' ' . implode(' ', $escapedExtraArgs) : ''
         );
 
         $descriptors = [
@@ -867,6 +863,33 @@ HTML;
     private function projectRoot(): string
     {
         return dirname(__DIR__, 4);
+    }
+
+    private function extractPreviewRouteFromOutput(string $outputPath): ?string
+    {
+        $path = str_replace('\\', '/', trim($outputPath));
+        if ($path === '') {
+            return null;
+        }
+
+        $marker = '/minisites/';
+        $pos = strpos($path, $marker);
+        if ($pos === false) {
+            return null;
+        }
+
+        $suffix = substr($path, $pos + strlen($marker));
+        if ($suffix === false || $suffix === '') {
+            return null;
+        }
+
+        $parts = explode('/', $suffix);
+        $slug = trim((string)($parts[0] ?? ''));
+        if ($slug === '') {
+            return null;
+        }
+
+        return '/minisites/' . $slug;
     }
 
     private function safeError(Throwable $e): string

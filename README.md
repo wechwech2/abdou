@@ -64,8 +64,9 @@ Mode `dev` quotidien :
 
 Mode `staging` local (preview publication) :
 - construire preview : `pnpm run preview:build`
-- publier localement : `pnpm run preview:publish`
+- publier localement (workflow publication réel) : `pnpm run preview:publish`
 - verifier workflow complet : `pnpm run test:smoke:admin-php:http`
+- route publique programme attendue (build publication) : `/minisites/:programme-slug`
 
 Mode `compat` ponctuel (legacy) :
 - lancer proxy compat : `pnpm run start:admin-api:compat`
@@ -83,6 +84,21 @@ Commande :
 `pnpm run test:smoke:publication`
 
 Ce test verifie le socle build + deploy (logs et artefacts) sans necessiter tout le stack applicatif.
+
+Commande :
+`pnpm run test:smoke:public-programme-route`
+
+Ce test verrouille que le build genere une route publique programme (`/minisites/:programme-slug`) et n'expose pas la home generique Abdou sur cette URL.
+
+Commande :
+`pnpm run test:smoke:public-v1-flow`
+
+Ce test couvre le parcours V1 le plus rentable :
+- programme public accessible (`/minisites/:slug`) ;
+- contenu programme non generique ;
+- sections publiques essentielles affichees selon donnees ;
+- build/deploy locaux OK ;
+- non-regression URL publique (`published_url`).
 
 Commande :
 `pnpm run test:smoke:deploy-rollback`
@@ -277,8 +293,8 @@ Commande :
 Ce gate execute la phase locale complete orientee test client:
 - repetition generale,
 - publication preview locale,
-- verification du contenu `dist/preview`,
-- verification HTTP de `https://abdou.wechwech.tn` (ou `CLIENT_PREVIEW_URL`).
+- verification du contenu `dist/preview` (index racine + page programme `/minisites/:slug`),
+- verification HTTP de l'URL programme publiee (`CLIENT_PREVIEW_URL`, par defaut `https://abdou.wechwech.tn/minisites/residence-horizon`).
 
 Commande globale :
 `pnpm run test:smoke`

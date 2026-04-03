@@ -641,4 +641,24 @@ Il est l’interface entre la donnée métier préparée et le livrable public d
 
 Sa qualité dépendra de sa sobriété, de sa stabilité et de sa capacité à transformer un payload propre en minisite fiable, sans complexité inutile.
 
+---
+## 21. État V1 implémenté (socle public)
+
+Le socle public V1 actuel génère une page programme dédiée sur la route statique :
+
+- `/minisites/:programme-slug`
+
+Le template public V1 rend les blocs suivants quand les données existent :
+
+- hero ;
+- navigation des rubriques actives ;
+- environnement ;
+- maquette & lots ;
+- images ;
+- vidéo ;
+- documentation ;
+- footer.
+
+Les sections sans données ne sont pas affichées.
+
 

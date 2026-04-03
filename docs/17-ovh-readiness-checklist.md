@@ -16,7 +16,8 @@ Valider l'aptitude de la solution a tourner sur OVH Hosting Pro avant go-live.
 1. `pnpm run test:smoke:admin-php:http`
 2. `pnpm run test:smoke:deploy-verify`
 3. `pnpm run test:smoke:deploy-rollback`
-4. `pnpm run test:smoke:release-readiness`
+4. `pnpm run test:smoke:public-v1-flow`
+5. `pnpm run test:smoke:release-readiness`
 
 ## 4. Verification exploitation
 
