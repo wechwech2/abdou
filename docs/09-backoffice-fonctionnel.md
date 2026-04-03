@@ -758,4 +758,16 @@ C’est l’outil de préparation opérationnelle qui permet à ARA de transform
 
 Sa qualité se mesurera à une chose simple : la capacité d’un utilisateur interne à faire avancer un programme jusqu’à une publication fiable, sans bricolage.
 
+---
+## 18. État MVP implémenté (admin PHP)
+
+Le backoffice MVP actuellement exposé sur `/admin` inclut désormais un socle d’édition opérationnel pour alimenter le minisite public V1 :
+
+- édition programme (headline, description courte/longue, ville) ;
+- édition rubrique (titre, slug, contenu texte/HTML, activation, visibilité menu) ;
+- création d’un média public (image/vidéo/document) via URL ;
+- association d’un média à un programme (`programme_medias`) avec `usage_code` et statut publié.
+
+Ce socle reste volontairement minimal (pas de studio WYSIWYG ni d’upload riche), mais il permet de produire du contenu réellement visible après publication sur `/minisites/:programme-slug`.
+
 

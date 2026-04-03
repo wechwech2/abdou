@@ -204,6 +204,62 @@
     </section>
 
     <section class="card">
+      <h2 style="margin:0 0 10px;font-size:18px;">Edition Medias Publies</h2>
+      <div class="grid">
+        <div>
+          <label for="media-programme-id">Programme ID</label>
+          <input id="media-programme-id" type="number" value="1" min="1">
+        </div>
+        <div>
+          <label for="media-existing-id">Media ID existant (optionnel)</label>
+          <input id="media-existing-id" type="number" value="" min="1" placeholder="laisser vide pour créer">
+        </div>
+        <div>
+          <label for="media-type">Type</label>
+          <select id="media-type" style="width:100%;box-sizing:border-box;border:1px solid var(--line);border-radius:8px;padding:10px;font-size:14px;">
+            <option value="image">image</option>
+            <option value="video">video</option>
+            <option value="document">document</option>
+          </select>
+        </div>
+        <div>
+          <label for="media-usage-code">Usage code</label>
+          <input id="media-usage-code" type="text" value="gallery" placeholder="hero_image | gallery | video | documentation">
+        </div>
+      </div>
+      <div class="grid" style="margin-top:10px;">
+        <div>
+          <label for="media-public-url">Public URL</label>
+          <input id="media-public-url" type="url" placeholder="https://...">
+        </div>
+        <div>
+          <label for="media-title">Titre</label>
+          <input id="media-title" type="text" placeholder="Titre media">
+        </div>
+        <div>
+          <label for="media-alt-text">Alt text</label>
+          <input id="media-alt-text" type="text" placeholder="Texte alternatif">
+        </div>
+        <div>
+          <label for="media-caption">Caption</label>
+          <input id="media-caption" type="text" placeholder="Légende">
+        </div>
+      </div>
+      <div class="grid" style="margin-top:10px;">
+        <div>
+          <label><input id="media-is-published" type="checkbox" checked style="width:auto;"> Publie</label>
+        </div>
+        <div>
+          <label><input id="media-is-featured" type="checkbox" style="width:auto;"> Featured</label>
+        </div>
+      </div>
+      <div class="actions">
+        <button id="btn-load-programme-medias" type="button" class="secondary">Load Programme Medias</button>
+        <button id="btn-add-programme-media" type="button">Create/Attach Media</button>
+      </div>
+    </section>
+
+    <section class="card">
       <pre id="output">Ready.</pre>
     </section>
   </div>
@@ -226,6 +282,16 @@
     const rubriqueContentHtmlInput = document.getElementById("rubrique-content-html");
     const rubriqueEnabledInput = document.getElementById("rubrique-is-enabled");
     const rubriqueMenuVisibleInput = document.getElementById("rubrique-is-menu-visible");
+    const mediaProgrammeIdInput = document.getElementById("media-programme-id");
+    const mediaExistingIdInput = document.getElementById("media-existing-id");
+    const mediaTypeInput = document.getElementById("media-type");
+    const mediaUsageCodeInput = document.getElementById("media-usage-code");
+    const mediaPublicUrlInput = document.getElementById("media-public-url");
+    const mediaTitleInput = document.getElementById("media-title");
+    const mediaAltTextInput = document.getElementById("media-alt-text");
+    const mediaCaptionInput = document.getElementById("media-caption");
+    const mediaPublishedInput = document.getElementById("media-is-published");
+    const mediaFeaturedInput = document.getElementById("media-is-featured");
 
     function print(label, payload) {
       const text = typeof payload === "string" ? payload : JSON.stringify(payload, null, 2);
@@ -305,6 +371,95 @@
       });
     }
 
+    function inferMime(type, url) {
+      const lower = String(url || "").toLowerCase();
+      if (type === "image") {
+        if (lower.endsWith(".png")) return "image/png";
+        if (lower.endsWith(".webp")) return "image/webp";
+        return "image/jpeg";
+      }
+      if (type === "video") {
+        if (lower.endsWith(".webm")) return "video/webm";
+        if (lower.endsWith(".ogg")) return "video/ogg";
+        return "video/mp4";
+      }
+      if (lower.endsWith(".pdf")) return "application/pdf";
+      return "application/octet-stream";
+    }
+
+    function inferFilename(url, fallback) {
+      try {
+        const u = new URL(url);
+        const last = u.pathname.split("/").pop();
+        return (last && last.trim() !== "") ? last : fallback;
+      } catch (_) {
+        return fallback;
+      }
+    }
+
+    async function loadProgrammeMedias() {
+      const programmeId = Number(mediaProgrammeIdInput.value || "1");
+      await call(`${API_BASE}/programmes/${programmeId}/medias`);
+    }
+
+    async function addProgrammeMedia() {
+      const programmeId = Number(mediaProgrammeIdInput.value || "1");
+      const existingMediaId = Number(mediaExistingIdInput.value || "0");
+      const type = mediaTypeInput.value;
+      const usageCode = (mediaUsageCodeInput.value || "gallery").trim() || "gallery";
+      const publicUrl = (mediaPublicUrlInput.value || "").trim();
+      const title = (mediaTitleInput.value || "").trim();
+      const altText = (mediaAltTextInput.value || "").trim();
+      const caption = (mediaCaptionInput.value || "").trim();
+      let mediaId = existingMediaId;
+
+      if (!mediaId) {
+        if (!publicUrl) {
+          print("ADD MEDIA", "Public URL requise si aucun media_id n'est fourni.");
+          return;
+        }
+
+        const fallbackName = `${type}-${Date.now()}`;
+        const originalFilename = inferFilename(publicUrl, fallbackName);
+        const mimeType = inferMime(type, publicUrl);
+        const createRes = await call(`${API_BASE}/medias`, {
+          method: "POST",
+          body: JSON.stringify({
+            type,
+            mime_type: mimeType,
+            original_filename: originalFilename,
+            storage_filename: originalFilename,
+            storage_path: publicUrl,
+            public_url: publicUrl,
+            title,
+            alt_text: altText,
+            caption,
+            status: "published"
+          })
+        });
+        if (!createRes.body || createRes.body.ok !== true || !createRes.body.item) {
+          return;
+        }
+        mediaId = Number(createRes.body.item.id || 0);
+        mediaExistingIdInput.value = mediaId ? String(mediaId) : "";
+      }
+
+      if (!mediaId) {
+        print("ADD MEDIA", "Media ID invalide.");
+        return;
+      }
+
+      await call(`${API_BASE}/programmes/${programmeId}/medias`, {
+        method: "POST",
+        body: JSON.stringify({
+          media_id: mediaId,
+          usage_code: usageCode,
+          is_published: mediaPublishedInput.checked ? 1 : 0,
+          is_featured: mediaFeaturedInput.checked ? 1 : 0
+        })
+      });
+    }
+
     document.getElementById("btn-login").onclick = () =>
       call(`${API_BASE}/auth/login`, {
         method: "POST",
@@ -331,6 +486,8 @@
     document.getElementById("btn-save-programme").onclick = saveProgramme;
     document.getElementById("btn-load-rubriques").onclick = loadRubriquesProgramme;
     document.getElementById("btn-save-rubrique").onclick = saveRubrique;
+    document.getElementById("btn-load-programme-medias").onclick = loadProgrammeMedias;
+    document.getElementById("btn-add-programme-media").onclick = addProgrammeMedia;
   </script>
 </body>
 </html>

@@ -13,6 +13,7 @@ use Abdou\AdminPhp\Controllers\ContractsController;
 use Abdou\AdminPhp\Controllers\LotsController;
 use Abdou\AdminPhp\Controllers\MediasController;
 use Abdou\AdminPhp\Controllers\OffresController;
+use Abdou\AdminPhp\Controllers\ProgrammeMediasController;
 use Abdou\AdminPhp\Controllers\ProgrammesController;
 use Abdou\AdminPhp\Controllers\PublicationsController;
 use Abdou\AdminPhp\Controllers\RolesController;
@@ -38,6 +39,7 @@ final class Router
         $lotsController = new LotsController();
         $mediasController = new MediasController();
         $offresController = new OffresController();
+        $programmeMediasController = new ProgrammeMediasController();
         $programmesController = new ProgrammesController();
         $publicationsController = new PublicationsController();
         $rolesController = new RolesController();
@@ -184,6 +186,38 @@ final class Router
                 return;
             }
             $programmesController->update($matches[1]);
+            return;
+        }
+
+        if ($method === 'GET' && preg_match('#^/programmes/(\d+)/medias$#', $path, $matches) === 1) {
+            if (!$this->requireAuth()) {
+                return;
+            }
+            $programmeMediasController->index($matches[1]);
+            return;
+        }
+
+        if ($method === 'POST' && preg_match('#^/programmes/(\d+)/medias$#', $path, $matches) === 1) {
+            if (!$this->requireRole('admin')) {
+                return;
+            }
+            $programmeMediasController->create($matches[1]);
+            return;
+        }
+
+        if ($method === 'PUT' && preg_match('#^/programmes/(\d+)/medias/(\d+)$#', $path, $matches) === 1) {
+            if (!$this->requireRole('admin')) {
+                return;
+            }
+            $programmeMediasController->update($matches[1], $matches[2]);
+            return;
+        }
+
+        if ($method === 'DELETE' && preg_match('#^/programmes/(\d+)/medias/(\d+)$#', $path, $matches) === 1) {
+            if (!$this->requireRole('admin')) {
+                return;
+            }
+            $programmeMediasController->delete($matches[1], $matches[2]);
             return;
         }
 
