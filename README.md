@@ -116,6 +116,15 @@ Commande :
 Ce test verifie directement les endpoints workflow publication de `admin-php` (cible principale) avec session.
 
 Commande :
+`pnpm run test:smoke:admin-php:content-media`
+
+Ce test couvre le parcours minimal d'edition utile au minisite public :
+- mise a jour contenu programme ;
+- mise a jour rubrique ;
+- creation et association d'un media publie au programme ;
+- publication et verification du rendu dans `/minisites/:slug`.
+
+Commande :
 `pnpm run test:smoke:admin-php:health-db`
 
 Ce test verrouille le contrat des endpoints de sante `admin-php` (`/health`, `/health/db`) avec parite root et `/api`.

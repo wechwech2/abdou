@@ -63,6 +63,15 @@ const tasks = [
     timeoutMs: 120_000
   },
   {
+    name: 'admin-php-content-media-publication',
+    command: process.platform === 'win32' ? 'cmd.exe' : 'pnpm',
+    args:
+      process.platform === 'win32'
+        ? ['/d', '/s', '/c', 'pnpm run test:smoke:admin-php:content-media']
+        : ['run', 'test:smoke:admin-php:content-media'],
+    timeoutMs: 180_000
+  },
+  {
     name: 'admin-php-health-db',
     command: process.platform === 'win32' ? 'cmd.exe' : 'pnpm',
     args:
