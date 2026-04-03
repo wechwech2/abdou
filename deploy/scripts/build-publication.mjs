@@ -27,7 +27,6 @@ export async function buildPublication(publicationId, rootDir = resolve(process.
   const buildCode = `publication-${publicationId}-${timestamp}`;
   const targetDir = resolve(publishedDir, buildCode);
   const targetRootIndex = resolve(targetDir, 'index.html');
-  const targetRootHtaccess = resolve(targetDir, '.htaccess');
   const logFile = resolve(logsDir, `publication-${publicationId}.log`);
 
   const lines = [];
@@ -50,7 +49,6 @@ export async function buildPublication(publicationId, rootDir = resolve(process.
     await mkdir(targetDir, { recursive: true });
     const rootIndexHtml = renderRootIndexHtml(payload, programmeSlug);
     await writeFile(targetRootIndex, rootIndexHtml, 'utf8');
-    await writeFile(targetRootHtaccess, renderRootHtaccess(programmeSlug), 'utf8');
 
     lines.push(`[${new Date().toISOString()}] PAYLOAD source=admin-php publication_id=${publicationId}`);
     lines.push(`[${new Date().toISOString()}] OUTPUT ${minisiteOutputPath}`);
@@ -95,10 +93,10 @@ export async function buildPublication(publicationId, rootDir = resolve(process.
     <h1>Abdou</h1>
     <p>Publication statique générée.</p>
     <p><a href="/minisites/${fallbackSlug}">Publication ${publicationId}</a></p>
+    <p><a href="/admin">Connexion admin</a></p>
   </body>
 </html>`;
     await writeFile(targetRootIndex, fallbackRootIndex, 'utf8');
-    await writeFile(targetRootHtaccess, renderRootHtaccess(fallbackSlug), 'utf8');
 
     const fallbackMinisiteDir = resolve(targetDir, 'minisites', fallbackSlug);
     minisiteOutputPath = resolve(fallbackMinisiteDir, 'index.html');
@@ -252,36 +250,39 @@ function cleanPublicUrl(value) {
 
 function renderRootIndexHtml(payload, programmeSlug) {
   const programmeName = trimText(payload?.programme?.name) || 'Minisite';
+  const programmeCity = trimText(payload?.programme?.city);
+  const headline = trimText(payload?.programme?.headline || payload?.programme?.short_description);
   return `<!doctype html>
 <html lang="fr">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>${escapeHtml(programmeName)} | Abdou</title>
-    <meta http-equiv="refresh" content="0;url=/minisites/${escapeHtml(programmeSlug)}" />
     <style>
-      body { font-family: Arial, sans-serif; margin: 40px 24px; color: #111; }
-      h1 { margin-bottom: 8px; }
-      p { margin: 6px 0; }
-      a { color: #0d4ed8; text-decoration: none; font-weight: 600; }
+      body { font-family: Arial, sans-serif; margin: 0; color: #111; background: #f8fafc; }
+      main { max-width: 980px; margin: 0 auto; padding: 32px 20px; }
+      h1 { margin: 0 0 10px; }
+      p { margin: 8px 0; }
+      .actions { margin-top: 22px; display: flex; gap: 10px; flex-wrap: wrap; }
+      .btn { display: inline-block; padding: 10px 14px; border-radius: 8px; font-weight: 600; text-decoration: none; border: 1px solid #cbd5e1; }
+      .btn-primary { background: #0f172a; color: #fff; border-color: #0f172a; }
+      .btn-secondary { background: #fff; color: #0f172a; }
       a:hover { text-decoration: underline; }
     </style>
   </head>
   <body>
-    <h1>${escapeHtml(programmeName)}</h1>
-    <p>Redirection vers le minisite public.</p>
-    <p><a href="/minisites/${escapeHtml(programmeSlug)}">Ouvrir le minisite</a></p>
-    <script>
-      window.location.replace('/minisites/${escapeHtml(programmeSlug)}');
-    </script>
+    <main>
+      <h1>Abdou</h1>
+      <p>Plateforme de publication de minisites immobiliers.</p>
+      <p><strong>Programme pilote:</strong> ${escapeHtml(programmeName)}${programmeCity ? ` (${escapeHtml(programmeCity)})` : ''}</p>
+      ${headline ? `<p>${escapeHtml(headline)}</p>` : ''}
+      <div class="actions">
+        <a class="btn btn-primary" href="/minisites/${escapeHtml(programmeSlug)}">Voir le minisite public</a>
+        <a class="btn btn-secondary" href="/admin">Connexion admin</a>
+      </div>
+    </main>
   </body>
 </html>`;
-}
-
-function renderRootHtaccess(programmeSlug) {
-  return `RewriteEngine On
-RewriteRule ^$ /minisites/${programmeSlug}/ [R=302,L]
-`;
 }
 
 function renderProgrammeHtml(payload, programmeSlug) {
