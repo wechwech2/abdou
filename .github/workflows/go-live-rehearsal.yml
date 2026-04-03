@@ -1,0 +1,44 @@
+name: Go Live Rehearsal
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: go-live-rehearsal-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  rehearsal:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run go-live rehearsal gate
+        run: pnpm run test:smoke:go-live-rehearsal
+
+      - name: Upload Smoke Logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: go-live-rehearsal-logs-${{ github.run_id }}
+          path: dist/logs
+          if-no-files-found: ignore

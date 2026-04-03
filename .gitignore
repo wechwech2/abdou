@@ -1,0 +1,39 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build outputs
+dist/
+coverage/
+*.tsbuildinfo
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# OS / Editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Runtime / temporary
+tmp/
+*.tmp
+
+# Local storage payloads
+storage/imports/*
+storage/media-original/*
+storage/media-optimized/*
+storage/publications/*
+storage/exports/*
+
+# Admin PHP runtime sessions
+apps/admin-php/storage/sessions/*
+!apps/admin-php/storage/sessions/.gitkeep

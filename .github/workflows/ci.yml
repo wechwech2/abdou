@@ -1,0 +1,127 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - "**"
+  pull_request:
+    branches:
+      - "**"
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run check
+        run: pnpm run check
+
+      - name: Publish Smoke Summary
+        if: always()
+        run: |
+          if [ -f dist/logs/smoke-summary.json ]; then
+            echo "### Smoke Summary" >> "$GITHUB_STEP_SUMMARY"
+            echo "" >> "$GITHUB_STEP_SUMMARY"
+            node <<'NODE' >> "$GITHUB_STEP_SUMMARY"
+            const fs = require('node:fs');
+            const path = 'dist/logs/smoke-summary.json';
+            try {
+              const raw = fs.readFileSync(path, 'utf8');
+              const data = JSON.parse(raw);
+              const tasks = Array.isArray(data.tasks) ? data.tasks : [];
+              console.log(`- Generated at: \`${data.generated_at || '-'}\``);
+              console.log(`- Runtime: \`${data.runtime?.node_version || '-'}\` on \`${data.runtime?.platform || '-'}-${data.runtime?.arch || '-'}\``);
+              console.log(`- Passed: **${data.passed ?? 0}** / ${data.total ?? tasks.length}`);
+              console.log(`- Failed: **${data.failed ?? 0}**`);
+              console.log(`- Total elapsed: **${data.total_elapsed_ms ?? '-'} ms**`);
+              console.log('');
+              console.log('| Task | Command | Status | Exit | Elapsed (ms) | Timeout (ms) | Timed out |');
+              console.log('|---|---|---:|---:|---:|---:|---:|');
+              for (const task of tasks) {
+                const status = task.status === 'ok' ? 'OK' : 'FAILED';
+                const command = String(task.command || '-').replace(/\|/g, '\\|');
+                console.log(`| ${task.name || '-'} | \`${command}\` | ${status} | ${task.exit_code ?? '-'} | ${task.elapsed_ms ?? '-'} | ${task.timeout_ms ?? '-'} | ${task.timed_out ? 'yes' : 'no'} |`);
+              }
+              console.log('');
+              const failedTasks = tasks.filter((task) => task.status !== 'ok');
+              if (failedTasks.length > 0) {
+                console.log('#### Failed Task Details');
+                console.log('');
+                for (const task of failedTasks) {
+                  console.log(`<details><summary>${task.name || 'unknown-task'}</summary>`);
+                  console.log('');
+                  console.log(`- Command: \`${String(task.command || '-').replace(/`/g, '\\`')}\``);
+                  console.log(`- Exit code: ${task.exit_code ?? '-'}`);
+                  console.log(`- Timed out: ${task.timed_out ? 'yes' : 'no'}`);
+                  if (task.error) {
+                    console.log(`- Error: \`${String(task.error).replace(/`/g, '\\`')}\``);
+                  }
+                  console.log('');
+                  if (task.stderr_tail) {
+                    console.log('```text');
+                    console.log(String(task.stderr_tail).trim());
+                    console.log('```');
+                  } else if (task.stdout_tail) {
+                    console.log('```text');
+                    console.log(String(task.stdout_tail).trim());
+                    console.log('```');
+                  }
+                  console.log('');
+                  console.log('</details>');
+                  console.log('');
+                }
+              }
+              console.log('<details><summary>Raw JSON</summary>');
+              console.log('');
+              console.log('```json');
+              console.log(raw.trim());
+              console.log('```');
+              console.log('');
+              console.log('</details>');
+            } catch (error) {
+              console.log(`Unable to parse smoke summary: ${String(error.message || error)}`);
+            }
+            NODE
+            if [ -f dist/logs/smoke-summary.md ]; then
+              echo "" >> "$GITHUB_STEP_SUMMARY"
+              echo "#### Smoke Summary Markdown" >> "$GITHUB_STEP_SUMMARY"
+              echo "" >> "$GITHUB_STEP_SUMMARY"
+              cat dist/logs/smoke-summary.md >> "$GITHUB_STEP_SUMMARY"
+            fi
+          else
+            echo "### Smoke Summary" >> "$GITHUB_STEP_SUMMARY"
+            echo "smoke-summary.json not found." >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Upload Smoke Logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: smoke-logs-${{ github.run_id }}
+          path: dist/logs
+          if-no-files-found: ignore

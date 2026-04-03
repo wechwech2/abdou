@@ -1,0 +1,15 @@
+{
+  "name": "@abdou/admin-api",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "dist/apps/admin-api/src/main.js",
+  "dependencies": {
+    "@abdou/shared-types": "workspace:*"
+  },
+  "scripts": {
+    "build": "node scripts/clean-dist.mjs && pnpm --filter @abdou/shared-types run build && tsc -p tsconfig.json",
+    "start": "node dist/apps/admin-api/src/main.js",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  }
+}

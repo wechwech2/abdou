@@ -1,0 +1,2 @@
+-- Placeholder d'initialisation MySQL pour environnement OVH compatible.
+-- Charger les scripts schema/* puis seeds/* depuis db/mysql.

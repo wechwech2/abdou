@@ -1,0 +1,20 @@
+CREATE TABLE clients (
+    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    code VARCHAR(50) NOT NULL,
+    name VARCHAR(150) NOT NULL,
+    slug VARCHAR(160) NOT NULL,
+    legal_name VARCHAR(200) NULL,
+    contact_name VARCHAR(150) NULL,
+    contact_email VARCHAR(190) NULL,
+    contact_phone VARCHAR(50) NULL,
+    brand_primary_color VARCHAR(20) NULL,
+    brand_secondary_color VARCHAR(20) NULL,
+    logo_media_id BIGINT UNSIGNED NULL,
+    status VARCHAR(30) NOT NULL DEFAULT 'active',
+    notes TEXT NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    UNIQUE KEY uq_clients_code (code),
+    UNIQUE KEY uq_clients_slug (slug)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

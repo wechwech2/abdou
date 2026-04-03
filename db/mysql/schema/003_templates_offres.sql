@@ -1,0 +1,37 @@
+CREATE TABLE templates (
+    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    code VARCHAR(50) NOT NULL,
+    name VARCHAR(150) NOT NULL,
+    version VARCHAR(50) NOT NULL,
+    is_default TINYINT(1) NOT NULL DEFAULT 0,
+    is_active TINYINT(1) NOT NULL DEFAULT 1,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    UNIQUE KEY uq_templates_code (code)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE offres (
+    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    code VARCHAR(50) NOT NULL,
+    name VARCHAR(150) NOT NULL,
+    slug VARCHAR(160) NOT NULL,
+    description TEXT NULL,
+    template_id BIGINT UNSIGNED NOT NULL,
+    max_rubriques INT UNSIGNED NULL,
+    enable_lots TINYINT(1) NOT NULL DEFAULT 0,
+    enable_documents TINYINT(1) NOT NULL DEFAULT 1,
+    enable_gallery TINYINT(1) NOT NULL DEFAULT 1,
+    enable_map TINYINT(1) NOT NULL DEFAULT 1,
+    enable_contact_block TINYINT(1) NOT NULL DEFAULT 1,
+    is_active TINYINT(1) NOT NULL DEFAULT 1,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    UNIQUE KEY uq_offres_code (code),
+    UNIQUE KEY uq_offres_slug (slug),
+    CONSTRAINT fk_offres_template
+        FOREIGN KEY (template_id) REFERENCES templates(id)
+        ON UPDATE RESTRICT
+        ON DELETE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

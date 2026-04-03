@@ -1,0 +1,6 @@
+project = "abdou"
+language = "fr"
+
+[architecture]
+publication_mode = "static"
+production_target = "ovh-mutualise"

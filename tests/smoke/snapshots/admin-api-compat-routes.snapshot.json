@@ -1,0 +1,362 @@
+[
+  {
+    "method": "GET",
+    "path": "/api/auth/me",
+    "upstreamPath": "/auth/me",
+    "mode": "read",
+    "accessPolicy": "session",
+    "responsePolicy": "proxy_passthrough"
+  },
+  {
+    "method": "GET",
+    "path": "/api/clients",
+    "upstreamPath": "/clients",
+    "mode": "read",
+    "accessPolicy": "session",
+    "responsePolicy": "proxy_passthrough"
+  },
+  {
+    "method": "GET",
+    "path": "/api/clients/:id",
+    "upstreamPath": "/clients/:id",
+    "mode": "read",
+    "accessPolicy": "session",
+    "responsePolicy": "proxy_passthrough"
+  },
+  {
+    "method": "GET",
+    "path": "/api/dashboard/summary",
+    "upstreamPath": "/dashboard/summary",
+    "mode": "read",
+    "accessPolicy": "session",
+    "responsePolicy": "proxy_passthrough"
+  },
+  {
+    "method": "GET",
+    "path": "/api/lots",
+    "upstreamPath": "/lots",
+    "mode": "read",
+    "accessPolicy": "session",
+    "responsePolicy": "proxy_passthrough"
+  },
+  {
+    "method": "GET",
+    "path": "/api/lots/:id",
+    "upstreamPath": "/lots/:id",
+    "mode": "read",
+    "accessPolicy": "session",
+    "responsePolicy": "proxy_passthrough"
+  },
+  {
+    "method": "GET",
+    "path": "/api/medias",
+    "upstreamPath": "/medias",
+    "mode": "read",
+    "accessPolicy": "session",
+    "responsePolicy": "proxy_passthrough"
+  },
+  {
+    "method": "GET",
+    "path": "/api/medias/:id",
+    "upstreamPath": "/medias/:id",
+    "mode": "read",
+    "accessPolicy": "session",
+    "responsePolicy": "proxy_passthrough"
+  },
+  {
+    "method": "GET",
+    "path": "/api/offres",
+    "upstreamPath": "/offres",
+    "mode": "read",
+    "accessPolicy": "session",
+    "responsePolicy": "proxy_passthrough"
+  },
+  {
+    "method": "GET",
+    "path": "/api/offres/:id",
+    "upstreamPath": "/offres/:id",
+    "mode": "read",
+    "accessPolicy": "session",
+    "responsePolicy": "proxy_passthrough"
+  },
+  {
+    "method": "GET",
+    "path": "/api/programmes",
+    "upstreamPath": "/programmes",
+    "mode": "read",
+    "accessPolicy": "session",
+    "responsePolicy": "proxy_passthrough"
+  },
+  {
+    "method": "GET",
+    "path": "/api/programmes/:id",
+    "upstreamPath": "/programmes/:id",
+    "mode": "read",
+    "accessPolicy": "session",
+    "responsePolicy": "proxy_passthrough"
+  },
+  {
+    "method": "GET",
+    "path": "/api/publications",
+    "upstreamPath": "/publications",
+    "mode": "read",
+    "accessPolicy": "session",
+    "responsePolicy": "proxy_passthrough"
+  },
+  {
+    "method": "GET",
+    "path": "/api/publications/:id",
+    "upstreamPath": "/publications/:id",
+    "mode": "read",
+    "accessPolicy": "session",
+    "responsePolicy": "proxy_passthrough"
+  },
+  {
+    "method": "GET",
+    "path": "/api/publications/:id/build-log",
+    "upstreamPath": "/publications/:id/build-log",
+    "mode": "read",
+    "accessPolicy": "session",
+    "responsePolicy": "proxy_passthrough"
+  },
+  {
+    "method": "GET",
+    "path": "/api/publications/:id/deploy-artifacts",
+    "upstreamPath": "/publications/:id/deploy-artifacts",
+    "mode": "read",
+    "accessPolicy": "session",
+    "responsePolicy": "proxy_passthrough"
+  },
+  {
+    "method": "GET",
+    "path": "/api/publications/:id/deploy-log",
+    "upstreamPath": "/publications/:id/deploy-log",
+    "mode": "read",
+    "accessPolicy": "session",
+    "responsePolicy": "proxy_passthrough"
+  },
+  {
+    "method": "GET",
+    "path": "/api/publications/:id/deploy-manifest",
+    "upstreamPath": "/publications/:id/deploy-manifest",
+    "mode": "read",
+    "accessPolicy": "session",
+    "responsePolicy": "proxy_passthrough"
+  },
+  {
+    "method": "GET",
+    "path": "/api/publications/:id/deploy-summary",
+    "upstreamPath": "/publications/:id/deploy-summary",
+    "mode": "read",
+    "accessPolicy": "session",
+    "responsePolicy": "proxy_passthrough"
+  },
+  {
+    "method": "GET",
+    "path": "/api/publications/:id/deploy-verify-log",
+    "upstreamPath": "/publications/:id/deploy-verify-log",
+    "mode": "read",
+    "accessPolicy": "session",
+    "responsePolicy": "proxy_passthrough"
+  },
+  {
+    "method": "GET",
+    "path": "/api/publications/:id/deployments",
+    "upstreamPath": "/publications/:id/deployments",
+    "mode": "read",
+    "accessPolicy": "session",
+    "responsePolicy": "proxy_passthrough"
+  },
+  {
+    "method": "GET",
+    "path": "/api/publications/:id/workflow-detail",
+    "upstreamPath": "/publications/:id/workflow-detail",
+    "mode": "read",
+    "accessPolicy": "session",
+    "responsePolicy": "proxy_passthrough"
+  },
+  {
+    "method": "GET",
+    "path": "/api/roles",
+    "upstreamPath": "/roles",
+    "mode": "read",
+    "accessPolicy": "session",
+    "responsePolicy": "proxy_passthrough"
+  },
+  {
+    "method": "GET",
+    "path": "/api/rubriques",
+    "upstreamPath": "/rubriques",
+    "mode": "read",
+    "accessPolicy": "session",
+    "responsePolicy": "proxy_passthrough"
+  },
+  {
+    "method": "GET",
+    "path": "/api/rubriques/:id",
+    "upstreamPath": "/rubriques/:id",
+    "mode": "read",
+    "accessPolicy": "session",
+    "responsePolicy": "proxy_passthrough"
+  },
+  {
+    "method": "GET",
+    "path": "/api/templates",
+    "upstreamPath": "/templates",
+    "mode": "read",
+    "accessPolicy": "session",
+    "responsePolicy": "proxy_passthrough"
+  },
+  {
+    "method": "GET",
+    "path": "/api/templates/:id",
+    "upstreamPath": "/templates/:id",
+    "mode": "read",
+    "accessPolicy": "session",
+    "responsePolicy": "proxy_passthrough"
+  },
+  {
+    "method": "GET",
+    "path": "/api/users",
+    "upstreamPath": "/users",
+    "mode": "read",
+    "accessPolicy": "session",
+    "responsePolicy": "proxy_passthrough"
+  },
+  {
+    "method": "GET",
+    "path": "/api/users/:id",
+    "upstreamPath": "/users/:id",
+    "mode": "read",
+    "accessPolicy": "session",
+    "responsePolicy": "proxy_passthrough"
+  },
+  {
+    "method": "POST",
+    "path": "/api/auth/login",
+    "upstreamPath": "/auth/login",
+    "mode": "write",
+    "accessPolicy": "public",
+    "responsePolicy": "proxy_passthrough"
+  },
+  {
+    "method": "POST",
+    "path": "/api/auth/logout",
+    "upstreamPath": "/auth/logout",
+    "mode": "write",
+    "accessPolicy": "session",
+    "responsePolicy": "proxy_passthrough"
+  },
+  {
+    "method": "POST",
+    "path": "/api/clients",
+    "upstreamPath": "/clients",
+    "mode": "write",
+    "accessPolicy": "admin",
+    "responsePolicy": "proxy_passthrough"
+  },
+  {
+    "method": "POST",
+    "path": "/api/lots",
+    "upstreamPath": "/lots",
+    "mode": "write",
+    "accessPolicy": "admin",
+    "responsePolicy": "proxy_passthrough"
+  },
+  {
+    "method": "POST",
+    "path": "/api/medias",
+    "upstreamPath": "/medias",
+    "mode": "write",
+    "accessPolicy": "admin",
+    "responsePolicy": "proxy_passthrough"
+  },
+  {
+    "method": "POST",
+    "path": "/api/programmes",
+    "upstreamPath": "/programmes",
+    "mode": "write",
+    "accessPolicy": "admin",
+    "responsePolicy": "proxy_passthrough"
+  },
+  {
+    "method": "POST",
+    "path": "/api/publications",
+    "upstreamPath": "/publications",
+    "mode": "write",
+    "accessPolicy": "admin",
+    "responsePolicy": "proxy_passthrough"
+  },
+  {
+    "method": "POST",
+    "path": "/api/publications/:id/build",
+    "upstreamPath": "/publications/:id/build",
+    "mode": "write",
+    "accessPolicy": "admin",
+    "responsePolicy": "proxy_passthrough"
+  },
+  {
+    "method": "POST",
+    "path": "/api/publications/:id/deploy",
+    "upstreamPath": "/publications/:id/deploy",
+    "mode": "write",
+    "accessPolicy": "admin",
+    "responsePolicy": "proxy_passthrough"
+  },
+  {
+    "method": "POST",
+    "path": "/api/publications/:id/preview",
+    "upstreamPath": "/publications/:id/preview",
+    "mode": "write",
+    "accessPolicy": "admin",
+    "responsePolicy": "proxy_passthrough"
+  },
+  {
+    "method": "POST",
+    "path": "/api/rubriques",
+    "upstreamPath": "/rubriques",
+    "mode": "write",
+    "accessPolicy": "admin",
+    "responsePolicy": "proxy_passthrough"
+  },
+  {
+    "method": "PUT",
+    "path": "/api/clients/:id",
+    "upstreamPath": "/clients/:id",
+    "mode": "write",
+    "accessPolicy": "admin",
+    "responsePolicy": "proxy_passthrough"
+  },
+  {
+    "method": "PUT",
+    "path": "/api/lots/:id",
+    "upstreamPath": "/lots/:id",
+    "mode": "write",
+    "accessPolicy": "admin",
+    "responsePolicy": "proxy_passthrough"
+  },
+  {
+    "method": "PUT",
+    "path": "/api/programmes/:id",
+    "upstreamPath": "/programmes/:id",
+    "mode": "write",
+    "accessPolicy": "admin",
+    "responsePolicy": "proxy_passthrough"
+  },
+  {
+    "method": "PUT",
+    "path": "/api/publications/:id/status",
+    "upstreamPath": "/publications/:id/status",
+    "mode": "write",
+    "accessPolicy": "admin",
+    "responsePolicy": "proxy_passthrough"
+  },
+  {
+    "method": "PUT",
+    "path": "/api/rubriques/:id",
+    "upstreamPath": "/rubriques/:id",
+    "mode": "write",
+    "accessPolicy": "admin",
+    "responsePolicy": "proxy_passthrough"
+  }
+]
