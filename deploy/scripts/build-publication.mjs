@@ -240,7 +240,7 @@ function renderRubriqueBody(rubrique) {
   if (contentText !== '') {
     return `<p>${escapeHtml(contentText)}</p>`;
   }
-  return '<p>Contenu non renseigné.</p>';
+  return '';
 }
 
 function cleanPublicUrl(value) {
@@ -313,7 +313,9 @@ function renderProgrammeHtml(payload, programmeSlug) {
   const heroMediaAlt =
     trimText(payload?.hero?.media?.alt_text) || trimText(payload?.hero?.media?.title) || programmeName;
 
-  const menuItems = sortedRubriques
+  const contentRubriques = sortedRubriques.filter((item) => renderRubriqueBody(item) !== '');
+
+  const menuItems = contentRubriques
     .filter((item) => Number(item?.is_menu_visible ?? 1) === 1)
     .map((item) => {
       const title = trimText(item?.title) || trimText(item?.code) || 'Rubrique';
@@ -322,7 +324,7 @@ function renderProgrammeHtml(payload, programmeSlug) {
     })
     .join('');
 
-  const rubriquesHtml = sortedRubriques
+  const rubriquesHtml = contentRubriques
     .map((item) => {
       const title = trimText(item?.title) || trimText(item?.code) || 'Rubrique';
       const slug = normalizeSlug(item?.slug, 0);

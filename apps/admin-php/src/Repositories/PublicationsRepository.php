@@ -201,8 +201,9 @@ SQL
         );
 
         $buildPath = sprintf('dist/published-sites/%s/%s', (string)$programme['slug'], $buildCode);
-        $publicPath = (string)($programme['target_path'] ?? '');
-        $publishedUrl = $this->composePublishedUrl((string)($programme['target_domain'] ?? ''), (string)($programme['slug'] ?? ''));
+        $programmeSlug = (string)($programme['slug'] ?? '');
+        $publicPath = $this->normalizePublicPath((string)($programme['target_path'] ?? ''), $programmeSlug);
+        $publishedUrl = $this->composePublishedUrl((string)($programme['target_domain'] ?? ''), $programmeSlug, $publicPath);
 
         $insert->execute([
             'programme_id' => $programmeId,
@@ -336,11 +337,19 @@ SQL
         return $row === false ? null : $row;
     }
 
-    private function composePublishedUrl(string $domain, string $slug): ?string
+    private function composePublishedUrl(string $domain, string $slug, string $publicPath = ''): ?string
     {
         $domain = trim($domain);
         if ($domain === '') {
             return null;
+        }
+
+        $path = trim(str_replace('\\', '/', $publicPath));
+        if ($path !== '') {
+            if (!str_starts_with($path, '/')) {
+                $path = '/' . $path;
+            }
+            return sprintf('https://%s%s', $domain, rtrim($path, '/'));
         }
 
         $slug = trim($slug);
@@ -349,5 +358,31 @@ SQL
         }
 
         return sprintf('https://%s/minisites/%s', $domain, $slug);
+    }
+
+    private function normalizePublicPath(string $targetPath, string $slug): string
+    {
+        $path = trim(str_replace('\\', '/', $targetPath));
+        if ($path === '') {
+            $slug = trim($slug);
+            return $slug !== '' ? '/minisites/' . $slug : '/minisites';
+        }
+
+        if (str_starts_with($path, '/www/')) {
+            $path = substr($path, 4);
+        }
+
+        if (!str_starts_with($path, '/')) {
+            $path = '/' . $path;
+        }
+
+        $path = preg_replace('#/+#', '/', $path) ?? $path;
+
+        if ($slug !== '' && !str_contains($path, '/' . $slug)) {
+            $base = rtrim($path, '/');
+            $path = $base . '/' . $slug;
+        }
+
+        return $path === '' ? '/minisites' : $path;
     }
 }
