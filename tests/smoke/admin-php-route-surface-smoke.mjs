@@ -78,6 +78,8 @@ async function main() {
       '/programmes',
       '/rubriques',
       '/medias',
+      '/batiments',
+      '/etages',
       '/lots',
       '/publications',
       '/roles',

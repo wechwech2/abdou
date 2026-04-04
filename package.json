@@ -35,6 +35,7 @@
     "test:smoke:admin-php:http": "node tests/smoke/admin-php-http-workflow-smoke.mjs",
     "test:smoke:admin-php:content-media": "node tests/smoke/admin-php-content-media-publication-smoke.mjs",
     "test:smoke:admin-php:batiments": "node tests/smoke/admin-php-batiments-smoke.mjs",
+    "test:smoke:admin-php:etages": "node tests/smoke/admin-php-etages-smoke.mjs",
     "test:smoke:admin-php:health-db": "node tests/smoke/admin-php-health-db-smoke.mjs",
     "test:smoke:admin-php:health-db-down": "node tests/smoke/admin-php-health-db-down-smoke.mjs",
     "test:smoke:admin-php:admin-page": "node tests/smoke/admin-php-admin-page-smoke.mjs",

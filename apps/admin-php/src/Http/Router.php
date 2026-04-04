@@ -8,6 +8,7 @@ use Abdou\AdminPhp\Auth\SessionAuth;
 use Abdou\AdminPhp\Controllers\AuthController;
 use Abdou\AdminPhp\Controllers\BatimentsController;
 use Abdou\AdminPhp\Controllers\DashboardController;
+use Abdou\AdminPhp\Controllers\EtagesController;
 use Abdou\AdminPhp\Controllers\HealthController;
 use Abdou\AdminPhp\Controllers\ClientsController;
 use Abdou\AdminPhp\Controllers\ContractsController;
@@ -34,6 +35,7 @@ final class Router
         }
         $healthController = new HealthController();
         $dashboardController = new DashboardController();
+        $etagesController = new EtagesController();
         $authController = new AuthController();
         $batimentsController = new BatimentsController();
         $clientsController = new ClientsController();
@@ -268,6 +270,38 @@ final class Router
                 return;
             }
             $batimentsController->etages($matches[1]);
+            return;
+        }
+
+        if ($method === 'GET' && $path === '/etages') {
+            if (!$this->requireAuth()) {
+                return;
+            }
+            $etagesController->index();
+            return;
+        }
+
+        if ($method === 'POST' && $path === '/etages') {
+            if (!$this->requireRole('admin')) {
+                return;
+            }
+            $etagesController->create();
+            return;
+        }
+
+        if ($method === 'GET' && preg_match('#^/etages/(\d+)$#', $path, $matches) === 1) {
+            if (!$this->requireAuth()) {
+                return;
+            }
+            $etagesController->show($matches[1]);
+            return;
+        }
+
+        if ($method === 'PUT' && preg_match('#^/etages/(\d+)$#', $path, $matches) === 1) {
+            if (!$this->requireRole('admin')) {
+                return;
+            }
+            $etagesController->update($matches[1]);
             return;
         }
 

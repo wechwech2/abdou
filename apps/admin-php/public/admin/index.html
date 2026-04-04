@@ -293,6 +293,36 @@
         <button id="btn-save-batiment" type="button">Create/Update Batiment</button>
         <button id="btn-load-etages-batiment" type="button" class="secondary">Load Etages Batiment</button>
       </div>
+
+      <hr style="border:0;border-top:1px solid var(--line);margin:16px 0;">
+
+      <h3 style="margin:0 0 10px;font-size:16px;">Edition Etages</h3>
+      <div class="grid">
+        <div>
+          <label for="etage-id">Etage ID (optionnel)</label>
+          <input id="etage-id" type="number" value="" min="1" placeholder="laisser vide pour création">
+        </div>
+        <div>
+          <label for="etage-code">Code</label>
+          <input id="etage-code" type="text" placeholder="R+1">
+        </div>
+        <div>
+          <label for="etage-name">Nom</label>
+          <input id="etage-name" type="text" placeholder="Etage 1">
+        </div>
+        <div>
+          <label for="etage-level-number">Niveau</label>
+          <input id="etage-level-number" type="number" value="1">
+        </div>
+        <div>
+          <label for="etage-display-order">Ordre</label>
+          <input id="etage-display-order" type="number" value="1" min="1">
+        </div>
+      </div>
+      <div class="actions">
+        <button id="btn-load-etages" type="button" class="secondary">Load Etages</button>
+        <button id="btn-save-etage" type="button">Create/Update Etage</button>
+      </div>
     </section>
 
     <section class="card">
@@ -334,6 +364,11 @@
     const batimentNameInput = document.getElementById("batiment-name");
     const batimentDisplayOrderInput = document.getElementById("batiment-display-order");
     const batimentIsActiveInput = document.getElementById("batiment-is-active");
+    const etageIdInput = document.getElementById("etage-id");
+    const etageCodeInput = document.getElementById("etage-code");
+    const etageNameInput = document.getElementById("etage-name");
+    const etageLevelNumberInput = document.getElementById("etage-level-number");
+    const etageDisplayOrderInput = document.getElementById("etage-display-order");
 
     function print(label, payload) {
       const text = typeof payload === "string" ? payload : JSON.stringify(payload, null, 2);
@@ -556,6 +591,58 @@
       await call(`${API_BASE}/batiments/${id}/etages`);
     }
 
+    async function loadEtages() {
+      const batimentId = Number(batimentIdInput.value || "0");
+      if (!batimentId) {
+        print("LOAD ETAGES", "Batiment ID manquant.");
+        return;
+      }
+      const { body } = await call(`${API_BASE}/etages?batiment_id=${batimentId}&limit=100`);
+      if (!body || body.ok !== true || !Array.isArray(body.items) || body.items.length === 0) return;
+      const first = body.items[0];
+      etageIdInput.value = first.id || "";
+      etageCodeInput.value = first.code || "";
+      etageNameInput.value = first.name || "";
+      etageLevelNumberInput.value = String(first.level_number || 0);
+      etageDisplayOrderInput.value = String(first.display_order || 1);
+    }
+
+    async function saveEtage() {
+      const batimentId = Number(batimentIdInput.value || "0");
+      if (!batimentId) {
+        print("SAVE ETAGE", "Batiment ID manquant.");
+        return;
+      }
+      const id = Number(etageIdInput.value || "0");
+      const payload = {
+        batiment_id: batimentId,
+        code: etageCodeInput.value,
+        name: etageNameInput.value,
+        level_number: Number(etageLevelNumberInput.value || "0"),
+        display_order: Number(etageDisplayOrderInput.value || "1")
+      };
+      if (id > 0) {
+        await call(`${API_BASE}/etages/${id}`, {
+          method: "PUT",
+          body: JSON.stringify({
+            code: payload.code,
+            name: payload.name,
+            level_number: payload.level_number,
+            display_order: payload.display_order
+          })
+        });
+        return;
+      }
+      const { body } = await call(`${API_BASE}/etages`, {
+        method: "POST",
+        body: JSON.stringify(payload)
+      });
+      const createdId = Number(body && body.item ? body.item.id : 0);
+      if (createdId > 0) {
+        etageIdInput.value = String(createdId);
+      }
+    }
+
     document.getElementById("btn-login").onclick = () =>
       call(`${API_BASE}/auth/login`, {
         method: "POST",
@@ -587,6 +674,8 @@
     document.getElementById("btn-load-batiments").onclick = loadBatiments;
     document.getElementById("btn-save-batiment").onclick = saveBatiment;
     document.getElementById("btn-load-etages-batiment").onclick = loadEtagesBatiment;
+    document.getElementById("btn-load-etages").onclick = loadEtages;
+    document.getElementById("btn-save-etage").onclick = saveEtage;
   </script>
 </body>
 </html>

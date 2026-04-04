@@ -136,6 +136,15 @@ Ce test couvre le socle CRUD minimal batiments dans l'admin PHP :
 - lecture des etages du batiment.
 
 Commande :
+`pnpm run test:smoke:admin-php:etages`
+
+Ce test couvre le socle CRUD minimal etages dans l'admin PHP :
+- creation d'un etage rattache a un batiment ;
+- mise a jour ;
+- listing filtre par batiment ;
+- verification de lecture via `/batiments/:id/etages`.
+
+Commande :
 `pnpm run test:smoke:admin-php:health-db`
 
 Ce test verrouille le contrat des endpoints de sante `admin-php` (`/health`, `/health/db`) avec parite root et `/api`.
