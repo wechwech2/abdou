@@ -27,6 +27,7 @@ En cible finale, toute la chaine doit etre exploitable dans une seule offre `OVH
 - `deploy/` : scripts de build/package/deploiement
 - `dist/` : artefacts generes
 - `storage/` : stockage de travail (imports/media/publications)
+- `docs/19-session-handoff-2026-04-04.md` : point de reprise rapide de la derniere session
 
 ## Statut
 

@@ -674,4 +674,24 @@ préparation interne, structuration métier, génération statique, validation, 
 
 C’est cette chaîne, et non une simple interface, qui constitue le MVP du produit.
 
+---
+## 18. Mise à jour session (04 avril 2026)
+
+Livré sur le socle V1 publiable:
+
+- minisite public data-driven route `/minisites/:programme-slug` ;
+- payload public V1 (programme, offre, template, rubriques, médias, lots, bâtiments, sections conditionnelles) ;
+- template public V1 (hero, rubriques actives, environnement, maquette & lots, images, vidéo, documentation, footer) ;
+- flux publication effectif build -> deploy -> published_url ;
+- alignement de publication `public_path=/minisites/:slug`, `target_path=www/minisites/:slug`, `published_url=https://<domain>/minisites/:slug` ;
+- statuts déploiement corrigés (`pending -> running -> success|failed`) ;
+- CRUD minimal backoffice PHP: programme, rubriques, médias, associations programme-médias, bâtiments, étages, lots ;
+- smoke tests renforcés sur parcours V1.
+
+Prochaine reprise recommandée (ordre court):
+
+1. formulaire lots admin avec sélection guidée bâtiment/étage ;
+2. upload médias local (au-delà URL) + copie assets publication ;
+3. validation métier opérateur/validateur/admin avant publication.
+
 

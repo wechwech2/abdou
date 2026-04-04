@@ -21,6 +21,8 @@ Valider l'aptitude de la solution a tourner sur OVH Hosting Pro avant go-live.
 4. `pnpm run test:smoke:public-v1-flow`
 5. `pnpm run test:smoke:release-readiness`
 6. `pnpm run test:smoke:admin-php:content-media`
+7. `pnpm run test:smoke:admin-php:batiments`
+8. `pnpm run test:smoke:admin-php:etages`
 
 ## 4. Verification exploitation
 

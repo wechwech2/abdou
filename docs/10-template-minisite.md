@@ -661,4 +661,10 @@ Le template public V1 rend les blocs suivants quand les données existent :
 
 Les sections sans données ne sont pas affichées.
 
+Navigation lots V1 en place:
+
+- navigation simple par bâtiment (si bâtiments publiables disponibles) ;
+- recherche simple de lot (référence, typologie, bâtiment) ;
+- table lots minimale (référence, bâtiment, typologie, surface, prix).
+
 
