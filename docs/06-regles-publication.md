@@ -272,6 +272,50 @@ Ces états doivent être traçables et lisibles dans le backoffice et dans les j
 
 
 
+### 5.8. États de déploiement (publication_deployments)
+
+
+
+Pour chaque tentative de déploiement, la table `publication_deployments` suit:
+
+
+
+- `pending` : tentative créée, pas encore exécutée ;
+
+- `running` : script de déploiement en cours ;
+
+- `success` : déploiement terminé et vérifications passées ;
+
+- `failed` : échec du déploiement ou de la vérification ;
+
+- `rolled_back` : rollback manuel/exploitation effectué.
+
+
+
+Le statut de la publication (`publications.status`) n'est mis à `deployed` qu'après un déploiement `success`.
+
+
+
+### 5.9. Convention de chemins publics
+
+
+
+Pour un programme `:slug`, les champs attendus sont:
+
+
+
+- `public_path = "/minisites/:slug"`
+
+- `target_path = "www/minisites/:slug"`
+
+- `published_url = "https://<target_domain>/minisites/:slug"`
+
+
+
+Le build génère un artefact statique versionné, puis le déploiement copie cet artefact vers la cible locale/exploitation configurée.
+
+
+
 ---
 ## 6. Versionnement
 

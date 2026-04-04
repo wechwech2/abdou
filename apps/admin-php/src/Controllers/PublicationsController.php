@@ -16,6 +16,9 @@ final class PublicationsController
     private const STATUS_GENERATED = 'generated';
     private const STATUS_DEPLOYED = 'deployed';
     private const STATUS_FAILED = 'failed';
+    private const DEPLOYMENT_STATUS_RUNNING = 'running';
+    private const DEPLOYMENT_STATUS_SUCCESS = 'success';
+    private const DEPLOYMENT_STATUS_FAILED = 'failed';
 
     public function index(): void
     {
@@ -239,7 +242,22 @@ final class PublicationsController
 
         try {
             $repository = new PublicationsRepository(ConnectionFactory::create());
-            $deployment = $repository->createDeployment((int)$id, (int)$authUser['id'], $body);
+            $publicationId = (int)$id;
+            $publication = $repository->findById($publicationId);
+            if ($publication === null) {
+                JsonResponse::send(404, [
+                    'ok' => false,
+                    'error' => 'publication_not_found',
+                ]);
+                return;
+            }
+
+            $deploymentPayload = $body;
+            if (!isset($deploymentPayload['target_path']) || trim((string)$deploymentPayload['target_path']) === '') {
+                $deploymentPayload['target_path'] = $publication['programme_target_path'] ?? $publication['public_path'] ?? '';
+            }
+
+            $deployment = $repository->createDeployment($publicationId, (int)$authUser['id'], $deploymentPayload);
             if ($deployment === null) {
                 JsonResponse::send(404, [
                     'ok' => false,
@@ -248,19 +266,58 @@ final class PublicationsController
                 return;
             }
 
-            $run = $this->runNodePublicationScript('deploy-publication.mjs', (int)$id);
+            $deploymentId = (int)($deployment['id'] ?? 0);
+            if ($deploymentId > 0) {
+                $repository->updateDeploymentStatus($deploymentId, self::DEPLOYMENT_STATUS_RUNNING);
+            }
+
+            $extraArgs = [
+                '--mode=' . (isset($body['mode']) && trim((string)$body['mode']) !== '' ? trim((string)$body['mode']) : 'local'),
+                '--targetDir=' . $this->resolveDeployTargetDir($body),
+            ];
+
+            $programmeName = trim((string)($publication['programme_name'] ?? ''));
+            if ($programmeName !== '') {
+                $extraArgs[] = '--verifyExpect=' . $programmeName;
+            }
+
+            $httpsUrl = $this->resolvePublishedUrl($publication, $body);
+            if ($httpsUrl !== '') {
+                $extraArgs[] = '--verifyUrlHttps=' . $httpsUrl;
+                $httpUrl = preg_replace('#^https://#i', 'http://', $httpsUrl) ?? '';
+                if ($httpUrl !== '' && $httpUrl !== $httpsUrl) {
+                    $extraArgs[] = '--verifyUrlHttp=' . $httpUrl;
+                }
+            }
+
+            $run = $this->runNodePublicationScript('deploy-publication.mjs', $publicationId, $extraArgs);
             if (!$run['ok']) {
-                $repository->updateStatus((int)$id, self::STATUS_FAILED);
+                $repository->updateStatus($publicationId, self::STATUS_FAILED);
+                if ($deploymentId > 0) {
+                    $repository->updateDeploymentStatus(
+                        $deploymentId,
+                        self::DEPLOYMENT_STATUS_FAILED,
+                        $run['stderr'] !== '' ? $run['stderr'] : 'deployment_failed'
+                    );
+                }
             } else {
-                $repository->updateStatus((int)$id, self::STATUS_DEPLOYED);
+                $repository->updateStatus($publicationId, self::STATUS_DEPLOYED);
+                if ($deploymentId > 0) {
+                    $repository->updateDeploymentStatus(
+                        $deploymentId,
+                        self::DEPLOYMENT_STATUS_SUCCESS,
+                        'Deployment completed.'
+                    );
+                }
             }
 
             $parsed = $this->parseScriptOutput($run['stdout'], 'deploy-publication');
-            $publication = $repository->findById((int)$id);
+            $updatedPublication = $repository->findById($publicationId);
+            $updatedDeployment = $deploymentId > 0 ? $repository->findDeploymentById($deploymentId) : $deployment;
             JsonResponse::send(200, [
                 'ok' => true,
-                'deployment' => $deployment,
-                'publication' => $publication,
+                'deployment' => $updatedDeployment,
+                'publication' => $updatedPublication,
                 'local_deploy' => [
                     'ok' => $run['ok'],
                     'log_path' => $parsed['log'] ?? null,
@@ -270,6 +327,8 @@ final class PublicationsController
                     'target_dir' => $parsed['target'] ?? null,
                     'mode' => $parsed['mode'] ?? 'local',
                     'verify_status' => $parsed['verify_status'] ?? ($run['ok'] ? 'ok' : 'failed'),
+                    'verify_url_https' => $httpsUrl !== '' ? $httpsUrl : null,
+                    'verify_url_http' => isset($httpUrl) && $httpUrl !== '' ? $httpUrl : null,
                     'stdout' => $run['stdout'],
                     'stderr' => $run['stderr'],
                 ],
@@ -863,6 +922,51 @@ final class PublicationsController
     private function projectRoot(): string
     {
         return dirname(__DIR__, 4);
+    }
+
+    /**
+     * @param array<string, mixed> $body
+     */
+    private function resolveDeployTargetDir(array $body): string
+    {
+        $raw = isset($body['target_dir']) ? trim((string)$body['target_dir']) : '';
+        if ($raw !== '') {
+            return $raw;
+        }
+
+        $env = trim((string)(getenv('DEPLOY_TARGET_DIR') ?: ''));
+        if ($env !== '') {
+            return $env;
+        }
+
+        return 'dist/preview';
+    }
+
+    /**
+     * @param array<string, mixed> $publication
+     * @param array<string, mixed> $body
+     */
+    private function resolvePublishedUrl(array $publication, array $body): string
+    {
+        if (isset($body['verify_url_https']) && trim((string)$body['verify_url_https']) !== '') {
+            return trim((string)$body['verify_url_https']);
+        }
+        if (isset($body['verify_url']) && trim((string)$body['verify_url']) !== '') {
+            return trim((string)$body['verify_url']);
+        }
+
+        $publishedUrl = trim((string)($publication['published_url'] ?? ''));
+        if ($publishedUrl !== '') {
+            return $publishedUrl;
+        }
+
+        $domain = trim((string)($publication['programme_target_domain'] ?? ''));
+        $slug = trim((string)($publication['programme_slug'] ?? ''));
+        if ($domain === '' || $slug === '') {
+            return '';
+        }
+
+        return sprintf('https://%s/minisites/%s', $domain, $slug);
     }
 
     private function extractPreviewRouteFromOutput(string $outputPath): ?string

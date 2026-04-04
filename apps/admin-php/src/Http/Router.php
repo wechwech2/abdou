@@ -6,6 +6,7 @@ namespace Abdou\AdminPhp\Http;
 
 use Abdou\AdminPhp\Auth\SessionAuth;
 use Abdou\AdminPhp\Controllers\AuthController;
+use Abdou\AdminPhp\Controllers\BatimentsController;
 use Abdou\AdminPhp\Controllers\DashboardController;
 use Abdou\AdminPhp\Controllers\HealthController;
 use Abdou\AdminPhp\Controllers\ClientsController;
@@ -34,6 +35,7 @@ final class Router
         $healthController = new HealthController();
         $dashboardController = new DashboardController();
         $authController = new AuthController();
+        $batimentsController = new BatimentsController();
         $clientsController = new ClientsController();
         $contractsController = new ContractsController();
         $lotsController = new LotsController();
@@ -226,6 +228,46 @@ final class Router
                 return;
             }
             $lotsController->index();
+            return;
+        }
+
+        if ($method === 'GET' && $path === '/batiments') {
+            if (!$this->requireAuth()) {
+                return;
+            }
+            $batimentsController->index();
+            return;
+        }
+
+        if ($method === 'POST' && $path === '/batiments') {
+            if (!$this->requireRole('admin')) {
+                return;
+            }
+            $batimentsController->create();
+            return;
+        }
+
+        if ($method === 'GET' && preg_match('#^/batiments/(\d+)$#', $path, $matches) === 1) {
+            if (!$this->requireAuth()) {
+                return;
+            }
+            $batimentsController->show($matches[1]);
+            return;
+        }
+
+        if ($method === 'PUT' && preg_match('#^/batiments/(\d+)$#', $path, $matches) === 1) {
+            if (!$this->requireRole('admin')) {
+                return;
+            }
+            $batimentsController->update($matches[1]);
+            return;
+        }
+
+        if ($method === 'GET' && preg_match('#^/batiments/(\d+)/etages$#', $path, $matches) === 1) {
+            if (!$this->requireAuth()) {
+                return;
+            }
+            $batimentsController->etages($matches[1]);
             return;
         }
 

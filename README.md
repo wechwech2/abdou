@@ -122,7 +122,18 @@ Ce test couvre le parcours minimal d'edition utile au minisite public :
 - mise a jour contenu programme ;
 - mise a jour rubrique ;
 - creation et association d'un media publie au programme ;
-- publication et verification du rendu dans `/minisites/:slug`.
+- build + deploy via endpoints `admin-php` ;
+- verification du rendu dans `/minisites/:slug` ;
+- verification de l'alignement `public_path` / `target_path` / `published_url`.
+
+Commande :
+`pnpm run test:smoke:admin-php:batiments`
+
+Ce test couvre le socle CRUD minimal batiments dans l'admin PHP :
+- creation d'un batiment programme ;
+- mise a jour ;
+- listing filtre par programme ;
+- lecture des etages du batiment.
 
 Commande :
 `pnpm run test:smoke:admin-php:health-db`

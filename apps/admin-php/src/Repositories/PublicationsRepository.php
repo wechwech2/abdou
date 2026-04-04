@@ -48,6 +48,9 @@ SELECT
     p.created_by,
     p.created_at,
     p.updated_at,
+    pr.slug AS programme_slug,
+    pr.target_path AS programme_target_path,
+    pr.target_domain AS programme_target_domain,
     pr.code AS programme_code,
     pr.name AS programme_name
 FROM publications p
@@ -106,6 +109,9 @@ SELECT
     p.created_by,
     p.created_at,
     p.updated_at,
+    pr.slug AS programme_slug,
+    pr.target_path AS programme_target_path,
+    pr.target_domain AS programme_target_domain,
     pr.code AS programme_code,
     pr.name AS programme_name
 FROM publications p
@@ -285,9 +291,15 @@ SQL
         $targetType = isset($payload['target_type']) ? (string)$payload['target_type'] : 'ovh_hosting_pro';
         $targetLabel = isset($payload['target_label']) ? (string)$payload['target_label'] : 'production';
         $targetHost = isset($payload['target_host']) ? (string)$payload['target_host'] : null;
-        $targetPath = isset($payload['target_path']) ? (string)$payload['target_path'] : ((string)($publication['public_path'] ?? '/www'));
-        $status = isset($payload['deployment_status']) ? (string)$payload['deployment_status'] : 'success';
+        $targetPath = isset($payload['target_path'])
+            ? $this->normalizeTargetPath((string)$payload['target_path'], (string)($publication['programme_slug'] ?? ''))
+            : $this->defaultTargetPath($publication);
+        $status = isset($payload['deployment_status']) ? (string)$payload['deployment_status'] : 'pending';
+        if (!in_array($status, ['pending', 'running', 'success', 'failed', 'rolled_back'], true)) {
+            $status = 'pending';
+        }
         $logExcerpt = isset($payload['log_excerpt']) ? (string)$payload['log_excerpt'] : 'Deployment simulated by admin-php workflow.';
+        $finishedAtSql = in_array($status, ['success', 'failed', 'rolled_back'], true) ? 'NOW()' : 'NULL';
 
         $insert = $this->pdo->prepare(
             <<<SQL
@@ -311,7 +323,7 @@ INSERT INTO publication_deployments (
     :deployment_status,
     :deployed_by,
     NOW(),
-    NOW(),
+    {$finishedAtSql},
     :log_excerpt
 )
 SQL
@@ -328,12 +340,48 @@ SQL
         ]);
 
         $deploymentId = (int)$this->pdo->lastInsertId();
-        $this->updateStatus($publicationId, 'deployed');
+        return $this->findDeploymentById($deploymentId);
+    }
 
+    /**
+     * @return array<string, mixed>|null
+     */
+    public function updateDeploymentStatus(int $deploymentId, string $status, ?string $logExcerpt = null): ?array
+    {
+        if (!in_array($status, ['pending', 'running', 'success', 'failed', 'rolled_back'], true)) {
+            return $this->findDeploymentById($deploymentId);
+        }
+
+        $fields = ['deployment_status = :deployment_status'];
+        if (in_array($status, ['success', 'failed', 'rolled_back'], true)) {
+            $fields[] = 'finished_at = NOW()';
+        }
+        if ($logExcerpt !== null) {
+            $fields[] = 'log_excerpt = :log_excerpt';
+        }
+
+        $sql = sprintf('UPDATE publication_deployments SET %s WHERE id = :id', implode(', ', $fields));
+        $stmt = $this->pdo->prepare($sql);
+        $params = [
+            'id' => $deploymentId,
+            'deployment_status' => $status,
+        ];
+        if ($logExcerpt !== null) {
+            $params['log_excerpt'] = $logExcerpt;
+        }
+        $stmt->execute($params);
+
+        return $this->findDeploymentById($deploymentId);
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    public function findDeploymentById(int $deploymentId): ?array
+    {
         $read = $this->pdo->prepare('SELECT * FROM publication_deployments WHERE id = :id LIMIT 1');
         $read->execute(['id' => $deploymentId]);
         $row = $read->fetch();
-
         return $row === false ? null : $row;
     }
 
@@ -368,9 +416,7 @@ SQL
             return $slug !== '' ? '/minisites/' . $slug : '/minisites';
         }
 
-        if (str_starts_with($path, '/www/')) {
-            $path = substr($path, 4);
-        }
+        $path = preg_replace('#^/?www/#i', '', $path) ?? $path;
 
         if (!str_starts_with($path, '/')) {
             $path = '/' . $path;
@@ -384,5 +430,52 @@ SQL
         }
 
         return $path === '' ? '/minisites' : $path;
+    }
+
+    /**
+     * @param array<string, mixed> $publication
+     */
+    private function defaultTargetPath(array $publication): string
+    {
+        $slug = (string)($publication['programme_slug'] ?? '');
+        $fromProgramme = (string)($publication['programme_target_path'] ?? '');
+        if (trim($fromProgramme) !== '') {
+            return $this->normalizeTargetPath($fromProgramme, $slug);
+        }
+
+        $fromPublicPath = (string)($publication['public_path'] ?? '');
+        if (trim($fromPublicPath) !== '') {
+            return $this->normalizeTargetPath('www' . $fromPublicPath, $slug);
+        }
+
+        return $this->normalizeTargetPath('', $slug);
+    }
+
+    private function normalizeTargetPath(string $targetPath, string $slug): string
+    {
+        $path = trim(str_replace('\\', '/', $targetPath));
+        $path = preg_replace('#^/+#', '', $path) ?? $path;
+        $path = preg_replace('#^www/#i', '', $path) ?? $path;
+        $path = trim($path, '/');
+
+        if ($path === '') {
+            $path = 'minisites';
+        }
+
+        if (!str_starts_with($path, 'minisites/')) {
+            if ($path === 'minisites') {
+                $path = 'minisites';
+            } else {
+                $path = 'minisites/' . $path;
+            }
+        }
+
+        $slug = trim($slug);
+        if ($slug !== '' && !str_ends_with($path, '/' . $slug) && $path !== 'minisites/' . $slug) {
+            $path .= '/' . $slug;
+        }
+
+        $path = preg_replace('#/+#', '/', $path) ?? $path;
+        return 'www/' . ltrim($path, '/');
     }
 }

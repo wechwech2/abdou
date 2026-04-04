@@ -25,7 +25,14 @@ function parseArgs(argv) {
       continue;
     }
     const [key, ...rest] = raw.slice(2).split('=');
-    args[key] = rest.length > 0 ? rest.join('=') : 'true';
+    const value = rest.length > 0 ? rest.join('=') : 'true';
+    if (key === 'verifyUrl' || key === 'verifyUrlHttps' || key === 'verifyUrlHttp') {
+      const existing = Array.isArray(args[key]) ? args[key] : [];
+      existing.push(value);
+      args[key] = existing;
+      continue;
+    }
+    args[key] = value;
   }
   return args;
 }
@@ -79,6 +86,20 @@ function normalizeLines(input) {
     .filter(Boolean);
 }
 
+function uniqueUrls(urls) {
+  const values = [];
+  const seen = new Set();
+  for (const item of urls) {
+    const url = String(item ?? '').trim();
+    if (!url || seen.has(url)) {
+      continue;
+    }
+    seen.add(url);
+    values.push(url);
+  }
+  return values;
+}
+
 export async function deployPublication(publicationId, rootDir = resolve(process.cwd())) {
   const logsDir = resolve(rootDir, 'dist', 'logs', 'deployments');
   const logFile = resolve(logsDir, `publication-${publicationId}.log`);
@@ -91,7 +112,24 @@ export async function deployPublication(publicationId, rootDir = resolve(process
     rootDir,
     args.targetDir ?? process.env.DEPLOY_TARGET_DIR ?? resolve('dist', 'preview')
   );
-  const verifyUrl = args.verifyUrl ?? process.env.DEPLOY_VERIFY_URL ?? '';
+  const verifyUrl = Array.isArray(args.verifyUrl)
+    ? args.verifyUrl
+    : args.verifyUrl
+      ? [args.verifyUrl]
+      : String(process.env.DEPLOY_VERIFY_URL ?? '').trim() !== ''
+        ? [String(process.env.DEPLOY_VERIFY_URL ?? '').trim()]
+        : [];
+  const verifyUrlHttps = Array.isArray(args.verifyUrlHttps)
+    ? args.verifyUrlHttps
+    : args.verifyUrlHttps
+      ? [args.verifyUrlHttps]
+      : [];
+  const verifyUrlHttp = Array.isArray(args.verifyUrlHttp)
+    ? args.verifyUrlHttp
+    : args.verifyUrlHttp
+      ? [args.verifyUrlHttp]
+      : [];
+  const verifyUrls = uniqueUrls([...verifyUrlHttps, ...verifyUrl, ...verifyUrlHttp]);
   const verifyExpectRaw = args.verifyExpect ?? process.env.DEPLOY_VERIFY_EXPECT ?? '';
   const verifyExpect = normalizeLines(String(verifyExpectRaw).replaceAll(',', '\n'));
 
@@ -146,17 +184,17 @@ export async function deployPublication(publicationId, rootDir = resolve(process
       `[${new Date().toISOString()}] VERIFY mode=filesystem status=${verifyResult.status} checks=${verifyResult.checks.length} log=${verifyResult.log_path}`
     );
 
-    if (verifyUrl) {
+    for (const remoteUrl of verifyUrls) {
       const remoteVerify = await verifySite({
         rootDir,
-        url: verifyUrl,
+        url: remoteUrl,
         expects: verifyExpect,
       });
       lines.push(
-        `[${new Date().toISOString()}] VERIFY mode=http status=${remoteVerify.status} checks=${remoteVerify.checks.length} log=${remoteVerify.log_path}`
+        `[${new Date().toISOString()}] VERIFY mode=http status=${remoteVerify.status} checks=${remoteVerify.checks.length} url=${remoteUrl} log=${remoteVerify.log_path}`
       );
       if (remoteVerify.status !== 'ok') {
-        throw new Error(`verify_http_failed:${verifyUrl}`);
+        throw new Error(`verify_http_failed:${remoteUrl}`);
       }
     }
 

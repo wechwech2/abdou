@@ -766,7 +766,9 @@ Le backoffice MVP actuellement exposé sur `/admin` inclut désormais un socle d
 - édition programme (headline, description courte/longue, ville) ;
 - édition rubrique (titre, slug, contenu texte/HTML, activation, visibilité menu) ;
 - création d’un média public (image/vidéo/document) via URL ;
-- association d’un média à un programme (`programme_medias`) avec `usage_code` et statut publié.
+- association d’un média à un programme (`programme_medias`) avec `usage_code` et statut publié ;
+- CRUD minimal bâtiments (`/batiments`) pour organiser la navigation lots ;
+- lecture des étages par bâtiment (`/batiments/:id/etages`).
 
 Ce socle reste volontairement minimal (pas de studio WYSIWYG ni d’upload riche), mais il permet de produire du contenu réellement visible après publication sur `/minisites/:programme-slug`.
 

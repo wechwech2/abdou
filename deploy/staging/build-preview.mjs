@@ -54,10 +54,10 @@ function buildLandingHtml(generatedAt) {
   <body>
     <main>
       <h1>Abdou</h1>
-      <p>Landing preview unifiée de la plateforme minisites.</p>
+      <p>Plateforme de fabrication de minisites immobiliers.</p>
       <div class="actions">
-        <a class="btn btn-primary" href="/minisites/residence-horizon/">Voir le minisite pilote</a>
-        <a class="btn btn-secondary" href="/admin">Connexion admin</a>
+        <a class="btn btn-primary" href="/minisites/residence-horizon/">Minisite public</a>
+        <a class="btn btn-secondary" href="/admin">Espace admin</a>
       </div>
       <div class="meta">Generated: ${generatedAt}</div>
     </main>

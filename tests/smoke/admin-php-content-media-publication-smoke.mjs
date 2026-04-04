@@ -41,19 +41,6 @@ function mergeCookie(currentCookie, setCookieHeader) {
   return [candidate, ...parts].join('; ');
 }
 
-function run(command, args, label) {
-  const result = spawnSync(command, args, {
-    cwd: process.cwd(),
-    shell: false,
-    encoding: 'utf8',
-    stdio: 'pipe',
-  });
-  if (Number(result.status ?? 1) !== 0) {
-    throw new Error(`${label}_failed:${String(result.stderr || result.stdout || '').trim()}`);
-  }
-  return String(result.stdout || '').trim();
-}
-
 function runWithStatus(command, args) {
   return spawnSync(command, args, {
     cwd: process.cwd(),
@@ -213,12 +200,43 @@ async function main() {
     }
 
     const publicationId = createPublicationId();
-    run(process.execPath, ['deploy/scripts/build-publication.mjs', `--publicationId=${publicationId}`], 'build_publication');
-    run(
-      process.execPath,
-      ['deploy/scripts/deploy-publication.mjs', `--publicationId=${publicationId}`, '--targetDir=dist/preview', '--mode=local'],
-      'deploy_publication'
-    );
+    const buildPublication = await fetchJson(`/publications/${publicationId}/build`, {
+      method: 'POST',
+      body: JSON.stringify({}),
+    });
+    if (!buildPublication.response.ok || buildPublication.body?.ok !== true) {
+      throw new Error(`publication_build_failed:${buildPublication.response.status}`);
+    }
+
+    const deployPublication = await fetchJson(`/publications/${publicationId}/deploy`, {
+      method: 'POST',
+      body: JSON.stringify({ target_label: 'production' }),
+    });
+    if (!deployPublication.response.ok || deployPublication.body?.ok !== true) {
+      throw new Error(`publication_deploy_failed:${deployPublication.response.status}`);
+    }
+    if (deployPublication.body?.local_deploy?.ok !== true) {
+      throw new Error('publication_local_deploy_failed');
+    }
+
+    const publicationItem = deployPublication.body?.publication ?? {};
+    const deploymentItem = deployPublication.body?.deployment ?? {};
+    const publishedUrl = String(publicationItem?.published_url ?? '').trim();
+    const publicPath = String(publicationItem?.public_path ?? '').trim();
+    const targetPath = String(deploymentItem?.target_path ?? '').trim();
+
+    if (publicPath !== '/minisites/residence-horizon') {
+      throw new Error(`invalid_public_path:${publicPath}`);
+    }
+    if (targetPath !== 'www/minisites/residence-horizon') {
+      throw new Error(`invalid_target_path:${targetPath}`);
+    }
+    if (publishedUrl !== 'https://abdou.wechwech.tn/minisites/residence-horizon') {
+      throw new Error(`invalid_published_url:${publishedUrl}`);
+    }
+    if (String(deploymentItem?.deployment_status ?? '') !== 'success') {
+      throw new Error(`invalid_deployment_status:${String(deploymentItem?.deployment_status ?? '')}`);
+    }
 
     const previewPath = resolve(process.cwd(), 'dist', 'preview', 'minisites', 'residence-horizon', 'index.html');
     if (!existsSync(previewPath)) {
@@ -236,6 +254,7 @@ async function main() {
     console.log('[smoke] admin-php content/media publication workflow ok');
     console.log(`[smoke] marker=${marker}`);
     console.log(`[smoke] publication_id=${publicationId}`);
+    console.log(`[smoke] published_url=${publishedUrl}`);
     console.log(`[smoke] preview=${previewPath}`);
   } finally {
     phpServer.kill();
@@ -250,4 +269,3 @@ main().catch((error) => {
   console.error(`[smoke] failed: ${String(error instanceof Error ? error.message : error)}`);
   process.exit(1);
 });
-

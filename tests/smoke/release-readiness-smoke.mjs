@@ -5,6 +5,7 @@ import { spawnSync } from 'node:child_process';
 const scripts = [
   'test:smoke:admin-php:http',
   'test:smoke:admin-php:content-media',
+  'test:smoke:admin-php:batiments',
   'test:smoke:admin-php:rbac',
   'test:smoke:admin-php:validation',
   'test:smoke:admin-php:workflow-detail-contract',

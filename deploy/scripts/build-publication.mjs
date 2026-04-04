@@ -273,12 +273,12 @@ function renderRootIndexHtml(payload, programmeSlug) {
   <body>
     <main>
       <h1>Abdou</h1>
-      <p>Plateforme de publication de minisites immobiliers.</p>
+      <p>Plateforme de fabrication de minisites immobiliers.</p>
       <p><strong>Programme pilote:</strong> ${escapeHtml(programmeName)}${programmeCity ? ` (${escapeHtml(programmeCity)})` : ''}</p>
       ${headline ? `<p>${escapeHtml(headline)}</p>` : ''}
       <div class="actions">
-        <a class="btn btn-primary" href="/minisites/${escapeHtml(programmeSlug)}">Voir le minisite public</a>
-        <a class="btn btn-secondary" href="/admin">Connexion admin</a>
+        <a class="btn btn-primary" href="/minisites/${escapeHtml(programmeSlug)}">Minisite public</a>
+        <a class="btn btn-secondary" href="/admin">Espace admin</a>
       </div>
     </main>
   </body>
